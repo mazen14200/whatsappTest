@@ -177,6 +177,7 @@ const sendMessage_text = async (req,res)=> {
     }
 }*/
 
-module.exports = {sendMedia,sendMessage_text, generateQrCode};
+module.exports = {sendMedia,sendMessage_text};
+//module.exports = {sendMedia,sendMessage_text, generateQrCode};
 
 

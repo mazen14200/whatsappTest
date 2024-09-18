@@ -1,6 +1,7 @@
 const express = require("express");
 
-const {sendMedia,sendMessage_text,generateQrCode} = require("../controllers/waController");
+const {sendMedia,sendMessage_text} = require("../controllers/waController");
+//const {sendMedia,sendMessage_text,generateQrCode} = require("../controllers/waController");
 
 const router = express.Router();
 
