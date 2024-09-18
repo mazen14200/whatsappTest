@@ -1,3 +1,5 @@
-2024/09/18-14:36:59.826 257e0 Reusing MANIFEST C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
-2024/09/18-14:36:59.827 257e0 Recovering log #45
-2024/09/18-14:36:59.827 257e0 Reusing old log C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session\Default\Local Storage\leveldb/000045.log 
+2024/09/18-14:43:23.469 25f18 Reusing MANIFEST C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
+2024/09/18-14:43:23.470 25f18 Recovering log #45
+2024/09/18-14:43:23.470 25f18 Level-0 table #48: started
+2024/09/18-14:43:23.475 25f18 Level-0 table #48: 15145 bytes OK
+2024/09/18-14:43:23.480 25f18 Delete type=0 #45
