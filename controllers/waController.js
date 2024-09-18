@@ -1,6 +1,8 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
+const puppeteer = require('puppeteer');
+
 const client = new Client({
     authStrategy : new LocalAuth(),
 });
@@ -25,6 +27,10 @@ const qrcode = require('qrcode-terminal');
 
 client.initialize();
 
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const sendMedia = async (req,res)=> {
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
     let phone = req.query.phone || req.body.phone;
@@ -38,6 +44,11 @@ const sendMedia = async (req,res)=> {
         return res
         .status(401).json({status:"false",error:"This invalid Token"});
     }
+
+        // انتظر لمدة 7 ثواني (7000 مللي ثانية)
+        await wait(7000);  
+        console.log('7 seconds later...');
+
     try {
         const user = await client.isRegisteredUser(phone);
         if(user){
@@ -88,6 +99,10 @@ const sendMessage_text = async (req,res)=> {
         return res
         .status(401).json({status:"false",error:"This invalid Token"});
     }
+        // انتظر لمدة 7 ثواني (7000 مللي ثانية)
+        await wait(7000);  
+        console.log('7 seconds later...');
+
     try {
         const user = await client.isRegisteredUser(phone);
         if(user){
@@ -112,55 +127,55 @@ const sendMessage_text = async (req,res)=> {
 };
 
 
-// const generateQrCode = async(req,res) =>{
+const generateQrCode = async(req,res) =>{
     
-//     // try {
-//     //     //const client = new Client(...)
-//     //     let qr = await new Promise((resolve, reject) => {
-//     //         client.once('qr', (qr) => resolve(qr));
-//     //         setTimeout(() => {
-//     //             reject(new Error("QR event wasn't emitted in 40 seconds."));
-//     //         }, 40000)
-//     //     });
-//     //     res.status(200).json({
-//     //         status: true,
-//     //         response: {qr : qr  },
-//     //     });
-//     //     //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
-//     //     //res.send(qr);
-//     // } catch (err) {
-//     //     res.send(err.message);
-//     // }
-//         //client.on('qr', async(qr) => {
-//    client.once('qr', async(qr) => {
-//         // Generate and scan this code with your phone
-//         //qrcode.generate(qr,{small : true})
-//         res.status(200).json({
-//                 status: true,
-//                 response: {qr : qr  },
-//             });
-//           var infClient = client.info;
-//         console.log('QR RECEIVED', qr);
-//    });
+    // try {
+    //     //const client = new Client(...)
+    //     let qr = await new Promise((resolve, reject) => {
+    //         client.once('qr', (qr) => resolve(qr));
+    //         setTimeout(() => {
+    //             reject(new Error("QR event wasn't emitted in 40 seconds."));
+    //         }, 40000)
+    //     });
+    //     res.status(200).json({
+    //         status: true,
+    //         response: {qr : qr  },
+    //     });
+    //     //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
+    //     //res.send(qr);
+    // } catch (err) {
+    //     res.send(err.message);
+    // }
+        //client.on('qr', async(qr) => {
+   client.once('qr', async(qr) => {
+        // Generate and scan this code with your phone
+        //qrcode.generate(qr,{small : true})
+        res.status(200).json({
+                status: true,
+                response: {qr : qr  },
+            });
+          var infClient = client.info;
+        console.log('QR RECEIVED', qr);
+   });
     
-//     client.once('ready', () => {
-//         var infClient = client.info;
-//         console.log('Client is ready!');
-//         res.status(301).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
-//     });
+    client.once('ready', () => {
+        var infClient = client.info;
+        console.log('Client is ready!');
+        res.status(301).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
+    });
 
-//     /*client.once('disconnected', () => {
-//         var infClient = client.info;
-//         console.log('Client is disconnected!');
-//         res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
-//     });*/
+    /*client.once('disconnected', () => {
+        var infClient = client.info;
+        console.log('Client is disconnected!');
+        res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
+    });*/
     
-//     /*client.once('message', msg => {
-//         if (msg.body == '!ping') {
-//             msg.reply('pong');
-//         }
-//     });*/
-// }
+    /*client.once('message', msg => {
+        if (msg.body == '!ping') {
+            msg.reply('pong');
+        }
+    });*/
+}
 
 /*router.get('/', async (req, res) => {
     try {
@@ -177,7 +192,6 @@ const sendMessage_text = async (req,res)=> {
     }
 }*/
 
-module.exports = {sendMedia,sendMessage_text};
-//module.exports = {sendMedia,sendMessage_text, generateQrCode};
+module.exports = {sendMedia,sendMessage_text, generateQrCode};
 
 

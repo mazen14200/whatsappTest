@@ -15,9 +15,10 @@
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "express": "^4.21.0",
+    "init": "^0.1.2",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.25.0"
+    "whatsapp-web.js": "^1.23.0"
   },
   "description": ""
 }
