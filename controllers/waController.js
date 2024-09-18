@@ -67,7 +67,7 @@ const sendMedia = async (req,res)=> {
         console.log(message);
         console.log(phone);
 
-        res.json({message,phone});
+        //res.json({message,phone});
     } catch (error) {
         console.log(error);
         res.status(500).json({status:"false",error:"Error Server"});
