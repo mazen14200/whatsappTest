@@ -1,31 +1,50 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
-const puppeteer = require('puppeteer');
+//const puppeteer = require('puppeteer');
 
 const client = new Client({
     authStrategy : new LocalAuth(),
 });
 const qrcode = require('qrcode-terminal');
 
-// //client.on('qr', (qr) => {
+
+
+        
+//client.on('qr', (qr) => {
 // client.on('qr', (qr) => {
 //     // Generate and scan this code with your phone
 //     qrcode.generate(qr,{small : true});
 //     //console.log('QR RECEIVED', qr);
 // });
 
-// client.once('ready', () => {
-//     console.log('Client is ready!');
-// });
+client.on('ready', () => {
+    console.log('Client is ready!');
+});
 
-// client.once('message', msg => {
+client.on('authenticated', (session) => {
+    console.log('Authenticated successfully');
+    // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
+});
+
+client.on('auth_failure', (message) => {
+    console.error('Authentication failed:', message);
+});
+
+
+client.on('disconnected', (reason) => {
+    console.log('Client was logged out', reason);
+});
+
+// client.on('message', msg => {
 //     if (msg.body == '!ping') {
 //         msg.reply('pong');
 //     }
 // });
 
 client.initialize();
+
+
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -127,54 +146,93 @@ const sendMessage_text = async (req,res)=> {
 };
 
 
-const generateQrCode = async(req,res) =>{
+const generateQrCode = async(req,res,next) =>{
     
-    // try {
-    //     //const client = new Client(...)
-    //     let qr = await new Promise((resolve, reject) => {
-    //         client.once('qr', (qr) => resolve(qr));
-    //         setTimeout(() => {
-    //             reject(new Error("QR event wasn't emitted in 40 seconds."));
-    //         }, 40000)
-    //     });
-    //     res.status(200).json({
-    //         status: true,
-    //         response: {qr : qr  },
-    //     });
-    //     //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
-    //     //res.send(qr);
-    // } catch (err) {
-    //     res.send(err.message);
-    // }
+    // // const timeout = 3000; // 30000 مللي ثانية = 30 ثواني
+    // // res.setTimeout(timeout, () => {
+    // //     console.log('Request has timed out.');
+    // //     //res.status(503).send({status:"false",response:'Request timed out.'});
+    // //     res.status(200).send({status:"false",response:'Request timed out.'});
+    // // });
+
+    // // next();
+
+    try {
+        //const client = new Client(...)
+        let qr = await new Promise((resolve, reject) => {
+            client.once('qr', (qr) => resolve(qr));
+            setTimeout(() => {
+                return reject(new Error("QR event wasn't emitted in 30 seconds."));
+            }, 30000)
+        
+    });
+
+    ////qrcode.generate(qr,{small : true})
+
+    res.status(200).json({
+        status: true,
+        response: {qr : qr  },
+    }); 
+        //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
+        //res.send(qr);
+    } catch (err) {
+        res.send(err.message);
+    }
         //client.on('qr', async(qr) => {
-   client.once('qr', async(qr) => {
-        // Generate and scan this code with your phone
-        //qrcode.generate(qr,{small : true})
-        res.status(200).json({
-                status: true,
-                response: {qr : qr  },
-            });
-          var infClient = client.info;
-        console.log('QR RECEIVED', qr);
-   });
+   try{ 
+//    client.once('qr', async(qr) => {
+//         // Generate and scan this code with your phone
+//         //qrcode.generate(qr,{small : true})
+//         return res.status(200).json({
+//                 status: true,
+//                 response: {qr : qr  },
+//             });
+//           //var infClient = client.info;
+//         //console.log('QR RECEIVED', qr);
+//    });
     
     client.once('ready', () => {
         var infClient = client.info;
         console.log('Client is ready!');
-        res.status(301).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
+        return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
     });
 
-    /*client.once('disconnected', () => {
-        var infClient = client.info;
-        console.log('Client is disconnected!');
-        res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
-    });*/
+    // client.once('authenticated', (session) => {
+    //     console.log('Authenticated successfully');
+    //     // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
+    // });
+    
+    // client.once('auth_failure', (message) => {
+    //     console.error('Authentication failed:', message);
+    // });
+
+    // انتظر لمدة 2 ثواني (2000 مللي ثانية)
+    await wait(2000);  
+    console.log('2 seconds later...');
+    
+    var infClient2 = client.info;
+    if(infClient2 !==undefined &&  infClient2 !==null){
+        console.log('Client is ready222!');
+        return res.status(301).json({name : infClient2.pushname , sourcePhone : infClient2.wid.user});
+    }
+
+
+    // client.once('disconnected', () => {
+    //     //var infClient = client.info;
+    //     console.log('Client is disconnected!');
+    //     //res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
+    // });
     
     /*client.once('message', msg => {
         if (msg.body == '!ping') {
             msg.reply('pong');
         }
     });*/
+
+} catch (error) {
+    console.log(error);
+    return res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
+}
 }
 
 /*router.get('/', async (req, res) => {
