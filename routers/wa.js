@@ -10,9 +10,9 @@ const router = express.Router();
     res.json({status : "OK" });
 });*/
 router.get("/generateQrCode", generateQrCode);
-router.get("/api/sendMedia", sendMedia);
-router.post("/api/sendMedia", sendMedia);
-router.get("/api/sendMessage_text", sendMessage_text);
-router.post("/api/sendMessage_text", sendMessage_text);
+// router.get("/api/sendMedia", sendMedia);
+// router.post("/api/sendMedia", sendMedia);
+// router.get("/api/sendMessage_text", sendMessage_text);
+// router.post("/api/sendMessage_text", sendMessage_text);
 
 module.exports = router;
