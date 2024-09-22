@@ -3,9 +3,20 @@ const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
 //const puppeteer = require('puppeteer');
 
-const client = new Client({
-    authStrategy : new LocalAuth(),
+const client1 = new Client({
+    authStrategy : new LocalAuth({clientId: 'client1'}),
 });
+
+const client2 = new Client({
+    authStrategy : new LocalAuth({clientId: 'client2'}),
+});
+
+const client3 = new Client({
+    authStrategy : new LocalAuth({clientId: 'client3'}),
+});
+// Done client
+const client = client2;
+
 const qrcode = require('qrcode-terminal');
 
 
@@ -37,10 +48,40 @@ client.on('disconnected', (reason) => {
 });
 
 // client.on('message', msg => {
-//     if (msg.body == '!ping') {
-//         msg.reply('pong');
+//     if (msg.body === '!ping') {
+//         //msg.reply('pong');
+//         client.sendMessage(msg.from ,'pong');
 //     }
 // });
+
+// الاستماع للرسائل الواردة والرد عليها تلقائيًا
+client.on('message', message => {
+    console.log(`Received message: ${message.body}`);
+    console.log(`Received message ID: ${message.id.id}`);
+    console.log(`Received message From: ${message.from}`);
+    console.log(`Received message To: ${message.to}`);
+    console.log(`Received message time: ${message.timestamp}`);
+
+    
+    // الرد برسالة تلقائية
+    if (message.body.toLowerCase() === 'hello') {
+        message.reply('Hello! How can I assist you today?');
+    } 
+    // else {
+    //     message.reply('This is an automated response.');
+    // }
+});
+
+client.on('message', message => {
+    if (message.body.toLowerCase().includes('help')) {
+        message.reply('How can I assist you?');
+    } else if (message.body.includes('bye')) {
+        message.reply('Goodbye!');
+    } 
+    // else {
+    //     message.reply('I did not understand your message.');
+    // }
+});
 
 client.initialize();
 
@@ -192,9 +233,9 @@ const generateQrCode = async(req,res,next) =>{
 //    });
     
     client.once('ready', () => {
-        var infClient = client.info;
+        //var infClient = client.info;
         console.log('Client is ready!');
-        return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
+        //return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
     });
 
     // client.once('authenticated', (session) => {

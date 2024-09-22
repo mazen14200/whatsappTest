@@ -4,6 +4,10 @@ const cors = require('cors')
 const app = express()
 
 app.use(cors())
+const compression = require('compression')
+app.use(compression())
+
+
 const port = process.env.port || 3000
 const bodyParser = require('body-parser')
 
