@@ -1,0 +1,112 @@
+{
+    "sessions": [
+        {
+            "id": "client1",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client2",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        },
+        {
+            "id": "client_4001",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client_4002",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        },
+        {
+            "id": "client_4003",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client_4004",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        },
+        {
+            "id": "client_4005",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client_4006",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        },
+        {
+            "id": "client_4007",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client_4008",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        },
+        {
+            "id": "client_4009",
+            "sessionData": {
+                "WABrowserId": "\"UnOltN9JkBfsVY9JTv==\"",
+                "WASecretBundle": "{\"key\":\"dmFsdWU=\",\"encKey\":\"another_value=\"}",
+                "WAToken1": "\"token1_value==\"",
+                "WAToken2": "\"token2_value==\""
+            }
+        },
+        {
+            "id": "client_4010",
+            "sessionData": {
+                "WABrowserId": "\"DifferentBrowserId==\"",
+                "WASecretBundle": "{\"key\":\"different_value\",\"encKey\":\"another_enc_value=\"}",
+                "WAToken1": "\"different_token1==\"",
+                "WAToken2": "\"different_token2==\""
+            }
+        }
+    ]
+}

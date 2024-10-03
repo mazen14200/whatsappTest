@@ -2,49 +2,200 @@
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
 //const puppeteer = require('puppeteer');
+const jwt = require('jsonwebtoken');
 
-const client1 = new Client({
-    authStrategy : new LocalAuth({clientId: 'client1'}),
+const path = require('path');
+//const qrcode = require('qrcode-terminal');
+
+// تحديد مسار المجلد
+//const authDir = path.join(__dirname, '../.wwebjs_auth');
+const authDir = path.join(__dirname, '../sessions');
+//const cachDir = path.join(__dirname, '../caches');
+//const chromepath = path.join(__dirname, '../usr/bin/chromium-browser');
+//const chromepath = path.join(__dirname, '../chrome/win64-127.0.6533.88/chrome-win64/chrome.exe');
+console.log(authDir);
+//const fs = require('fs');
+const fs = require('graceful-fs');
+//const sessionData = process.env.WHATSAPP_SESSION ? JSON.parse(process.env.WHATSAPP_SESSION) : null;
+//const rimraf = require('rimraf');
+const sid = "client5";
+//const auth_dataPath =   './.wwebjs_auth' || process.env.WWEBJS_AUTH_PATH;
+//const auth_userDataDir =   './.wwebjs_auth'+'/session-'+sid || process.env.WWEBJS_AUTH_PATH +'/session-'+sid;
+//const cachePath =  './.wwebjs_cache' || process.env.WWEBJS_CACHE_PATH;
+
+
+// مفتاح سري لتوقيع الـ JWT
+const SECRET_KEY = 'your-secret-key';
+
+// تخزين الجلسات
+let sessions = {};
+const id = '4005'
+//const pathSession = './sessions/session_'+id+'.json';
+
+// // تحميل الجلسات المحفوظة
+// if (fs.existsSync('session.json')) {
+//     sessions = JSON.parse(fs.readFileSync('session.json', 'utf8'));
+// }
+// // تحميل الجلسات المحفوظة
+// if (fs.existsSync(pathSession)) {
+//     sessions = JSON.parse(fs.readFileSync(pathSession, 'utf8'));
+// }
+// else{ // غير موجود اذا انشأ ملف بهذا الاسم
+//     var createStream = fs.createWriteStream(pathSession);
+// createStream.end();
+// }
+
+// دالة لحذف ملف
+function deleteFile(filePath) {
+    fs.unlink(filePath, (err) => {
+        if (err) {
+            console.error('فشل في حذف الملف:', err);
+        } else {
+            console.log('تم حذف الملف بنجاح');
+        }
+    });
+}
+
+// دالة لحذف المجلد
+function deleteFolder(folderPath) {
+    fs.rm(folderPath, { recursive: true, force: true }, err => {
+        if (err) {
+            console.error('فشل في حذف المجلد:', err);
+        } else {
+            console.log('تم حذف المجلد بنجاح');
+        }
+    });
+}
+
+const client5 = new Client({
+    authStrategy : new LocalAuth({
+        //dataPath: authDir,
+        clientId: 'client12',
+        //userDataDir : auth_userDataDir
+    }),
+    //session: sessions, // إذا كانت الجلسة موجودة، يتم استخدامها
+    puppeteer: {
+        //executablePath: '/usr/bin/google-chrome',  // أو مسار Chrome المثبت محليًا
+        //executablePath: chromepath,  // أو مسار Chrome المثبت محليًا
+        headless: true, // تشغيل المتصفح في وضع headless
+        args: ['--no-sandbox', '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',  // تقليل استخدام الذاكرة المشتركة
+            '--disable-extensions',
+            '--disable-gpu'  // إذا كان GPU غير مطلوب
+        ],
+        timeout: 29000, // زيادة وقت الانتظار إلى 29 ثانية
+        ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
+        //userDataDir : auth_userDataDir
+        }
+    // puppeteer: {
+    //     args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    //     timeout: 27000, // تعيين مهلة زمنية أطول إذا لزم الأمر
+    // }
+
 });
 
 const client2 = new Client({
-    authStrategy : new LocalAuth({clientId: 'client2'}),
+    authStrategy : new LocalAuth({
+        //dataPath: auth_dataPath,        
+        clientId: 'client2',
+    }),
+    session: sessions, // إذا كانت الجلسة موجودة، يتم استخدامها
+    puppeteer: {
+        headless: true, // تشغيل المتصفح في وضع headless
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        timeout: 29000, // زيادة وقت الانتظار إلى 29 ثانية
+        ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
+        ////cachePath: cachePath
+        }
+
 });
 
 const client3 = new Client({
-    authStrategy : new LocalAuth({clientId: 'client3'}),
+    authStrategy : new LocalAuth({   
+        //dataPath: auth_dataPath,         
+        clientId: 'client3',
+    }),
+    session: sessions, // إذا كانت الجلسة موجودة، يتم استخدامها
+    puppeteer: {
+        headless: true, // تشغيل المتصفح في وضع headless
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        timeout: 29000, // زيادة وقت الانتظار إلى 29 ثانية
+        ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
+        ////cachePath: cachePath
+    }
 });
 // Done client
-const client = client2;
+const client = client5;
 
-const qrcode = require('qrcode-terminal');
 
 
 
         
 //client.on('qr', (qr) => {
-// client.on('qr', (qr) => {
-//     // Generate and scan this code with your phone
-//     qrcode.generate(qr,{small : true});
-//     //console.log('QR RECEIVED', qr);
-// });
+// // client.on('qr', (qr) => {
+// //     // Generate and scan this code with your phone
+// //     qrcode.generate(qr,{small : true});
+// //     console.log('QR RECEIVED', qr);
+// // });
 
 client.on('ready', () => {
     console.log('Client is ready!');
 });
 
-client.on('authenticated', (session) => {
-    console.log('Authenticated successfully');
-    // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
+// client.on('disconnected', (reason) => {
+//     console.log('Client was disconnected:', reason);
+//     client.initialize(); // إعادة التهيئة تلقائيًا عند الانفصال
+// });
+
+// // حفظ الجلسة عند نجاح المصادقة
+// client.on('authenticated', (session) => {
+//     //sessions = session;
+//     console.log(session);
+//     fs.writeFile(pathSession, JSON.stringify(session), (err) => {
+//         if (err) {
+//             console.error('فشل في حفظ بيانات الجلسة:', err);
+//         } else {
+//             console.log('تم حفظ بيانات الجلسة بنجاح.');
+//         }
+//     });
+// });
+
+// // التعامل مع فقدان الجلسة
+// client.on('auth_failure', (msg) => {
+//     console.error('فشل المصادقة:', msg);
+//     fs.unlinkSync(SESSION_FILE_PATH); // حذف ملف الجلسة إذا فشلت المصادقة
+// });
+
+//deleteFolder('.wwebjs_auth/session-client1');
+
+
+// client.on('disconnected', async(reason) => {
+//     console.log('العميل تم فصله بسبب: Client was logged out ', reason);
+//     // استدعاء الدالة مع مسار الملف
+//     await wait(2000);  
+//     client.removeAllListeners(); // إزالة جميع المستمعين للحدث 'qr'
+//     await wait(2000);  
+//     deleteFolder('.wwebjs_auth/session-client5');
+//     await wait(6000);
+//     console.log('العميل تم فصله : Client was logged out ');  
+//     client.destroy().then(() => client.initialize());
+// });
+
+// client.on('disconnected', (reason) => {
+//     console.log('Client was logged out', reason);
+//     client.destroy();  // تأكد من تدمير العميل بشكل صحيح
+// });
+
+client.on('disconnected', async (error) => {
+    console.error('An error occurred:', error);
+    await client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
+    process.exit(1);
 });
 
-client.on('auth_failure', (message) => {
-    console.error('Authentication failed:', message);
-});
-
-
-client.on('disconnected', (reason) => {
-    console.log('Client was logged out', reason);
+client.on('error', async (error) => {
+    console.error('An error occurred:', error);
+    await client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
+    process.exit(1);
 });
 
 // client.on('message', msg => {
@@ -91,7 +242,48 @@ function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// إنشاء أو تحميل عميل WhatsApp
+function createClient(id) {
+    let client;
+    if (sessions[id]) {
+        client = new Client({ session: sessions[id] });
+    } else {
+        client = new Client();
+        client.on('qr', qr => {
+            console.log(`QR for client ${id}: ${qr}`);
+        });
+        client.on('authenticated', (session) => {
+            sessions[id] = session;
+            fs.writeFileSync('session.json', JSON.stringify(sessions));
+        });
+    }
+    
+    client.initialize();
+    return client;
+}
+
+// إنشاء API Token جديد لكل عميل
+function generateToken(id) {
+    //return jwt.sign({ id }, SECRET_KEY, { expiresIn: '1h' });
+    return jwt.sign({ id }, SECRET_KEY);
+}
+
+// مثال لإضافة عميل جديد والحصول على رمز API
+const addNewClient = async (req, res) => {
+    const id = req.params.id;
+    const client = createClient(id);
+    
+    // توليد رمز API للعميل الجديد
+    const token = generateToken(id);
+    
+    res.json({ success: true, token });
+};
+
 const sendMedia = async (req,res)=> {
+        
+    req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
     let phone = req.query.phone || req.body.phone;
     const message = req.query.message || req.body.message;
@@ -148,6 +340,10 @@ const sendMedia = async (req,res)=> {
 
 
 const sendMessage_text = async (req,res)=> {
+    
+    req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+    
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
     let phone = req.query.phone || req.body.phone;
     const message = req.query.message || req.body.message;
@@ -187,8 +383,34 @@ const sendMessage_text = async (req,res)=> {
 };
 
 
-const generateQrCode = async(req,res,next) =>{
+const test = async (req,res)=> {
+
+    res.setTimeout(35000); // 35000 مللي ثانية (35 ثانية)
+        // انتظر لمدة 3 ثواني (3000 مللي ثانية)
+        await wait(3000);  
+        console.log('3 seconds later...');
+
+    try {
+
+        res.json({status:"true", response: "hello مازن mazen New2 !!!"})
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"false",error:"Error Server"});
+    }
     
+};
+
+
+const generateQrCode = async(req,res,next) =>{
+    console.log(client.info);
+
+    const id = req.params.id;
+    client.removeAllListeners('qr'); // إزالة جميع المستمعين للحدث 'qr'
+
+    //req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    res.setTimeout(35000); // 35000 مللي ثانية (35 ثانية)
+
     // // const timeout = 3000; // 30000 مللي ثانية = 30 ثواني
     // // res.setTimeout(timeout, () => {
     // //     console.log('Request has timed out.');
@@ -197,31 +419,64 @@ const generateQrCode = async(req,res,next) =>{
     // // });
 
     // // next();
-
     try {
         //const client = new Client(...)
         let qr = await new Promise((resolve, reject) => {
             client.once('qr', (qr) => resolve(qr));
             setTimeout(() => {
-                return reject(new Error("QR event wasn't emitted in 30 seconds."));
+                //reject(res.json({status:"false",error:"QR event wasn't emitted in 30 seconds."}));
+                //return res.json({status:"false",error:"QR event wasn't emitted in 30 seconds."});
+                if(!res.headersSent){
+                    res.status(301).json({status:"false",error:"QR event wasn't emitted in 30 seconds."});
+                    return;
+                }
             }, 30000)
         
     });
 
     ////qrcode.generate(qr,{small : true})
+    
+    var infClient2 = client.info;
+    if(infClient2 !==undefined &&  infClient2 !==null){
+        console.log('Client is ready222!');
+        if(!res.headersSent){
+            res.status(301).json({name : infClient2.pushname , sourcePhone : infClient2.wid.user});
+            return;
+        }
+    }
 
-    res.status(200).json({
-        status: true,
-        response: {qr : qr  },
-    }); 
+    // انتظر لمدة 2 ثواني (2000 مللي ثانية)
+    await wait(2000);  
+    console.log('2 seconds later...');
+    console.log(id);
+
+
+    //console.log(res.headersSent);
+    if(!res.headersSent){
+        client.initialize();
+        res.status(200).json({
+            status: true,
+            //response: {qr : qr  },
+        });
+        return;
+    }
+
+    if(res.headersSent){
+        return;
+    }
+
         //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
         //res.send(qr);
-    } catch (err) {
-        res.send(err.message);
+    } catch (error) {
+        console.log(error);
+        if(!res.headersSent){
+            res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
+            return;
+        }   
     }
-        //client.on('qr', async(qr) => {
-   try{ 
-//    client.once('qr', async(qr) => {
+//         //client.on('qr', async(qr) => {
+//    try{ 
+//     client.once('qr', async(qr) => {
 //         // Generate and scan this code with your phone
 //         //qrcode.generate(qr,{small : true})
 //         return res.status(200).json({
@@ -232,48 +487,41 @@ const generateQrCode = async(req,res,next) =>{
 //         //console.log('QR RECEIVED', qr);
 //    });
     
-    client.once('ready', () => {
-        //var infClient = client.info;
-        console.log('Client is ready!');
-        //return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
-    });
+//     client.once('ready', () => {
+//         //var infClient = client.info;
+//         console.log('Client is ready!');
+//         //return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
+//     });
 
-    // client.once('authenticated', (session) => {
-    //     console.log('Authenticated successfully');
-    //     // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
-    // });
+//     // client.once('authenticated', (session) => {
+//     //     console.log('Authenticated successfully');
+//     //     // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
+//     // });
     
-    // client.once('auth_failure', (message) => {
-    //     console.error('Authentication failed:', message);
-    // });
+//     // client.once('auth_failure', (message) => {
+//     //     console.error('Authentication failed:', message);
+//     // });
 
-    // انتظر لمدة 2 ثواني (2000 مللي ثانية)
-    await wait(2000);  
-    console.log('2 seconds later...');
+
+
+
+//     // client.once('disconnected', () => {
+//     //     //var infClient = client.info;
+//     //     console.log('Client is disconnected!');
+//     //     //res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
+//     // });
     
-    var infClient2 = client.info;
-    if(infClient2 !==undefined &&  infClient2 !==null){
-        console.log('Client is ready222!');
-        return res.status(301).json({name : infClient2.pushname , sourcePhone : infClient2.wid.user});
-    }
+//     /*client.once('message', msg => {
+//         if (msg.body == '!ping') {
+//             msg.reply('pong');
+//         }
+//     });*/
 
-
-    // client.once('disconnected', () => {
-    //     //var infClient = client.info;
-    //     console.log('Client is disconnected!');
-    //     //res.status(302).json({name : client.info.pushname , sourcePhone : client.info.wid.user});
-    // });
-    
-    /*client.once('message', msg => {
-        if (msg.body == '!ping') {
-            msg.reply('pong');
-        }
-    });*/
-
-} catch (error) {
-    console.log(error);
-    return res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
-}
+// } catch (error) {
+//     console.log(error);
+//     res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
+//     return;
+// }
 }
 
 /*router.get('/', async (req, res) => {
@@ -291,6 +539,123 @@ const generateQrCode = async(req,res,next) =>{
     }
 }*/
 
-module.exports = {sendMedia,sendMessage_text, generateQrCode};
+
+
+const generateQrCodeNew = async(req,res,next) =>{
+    //console.log(client.info);
+
+    //const id = req.params.id;
+    //client.removeAllListeners('qr'); // إزالة جميع المستمعين للحدث 'qr'
+
+    //req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    res.setTimeout(35000); // 35000 مللي ثانية (35 ثانية)
+
+    // // const timeout = 3000; // 30000 مللي ثانية = 30 ثواني
+    // // res.setTimeout(timeout, () => {
+    // //     console.log('Request has timed out.');
+    // //     //res.status(503).send({status:"false",response:'Request timed out.'});
+    // //     res.status(200).send({status:"false",response:'Request timed out.'});
+    // // });
+
+    // // next();
+    try {
+        //const client = new Client(...)
+    // //     let qr = await new Promise((resolve, reject) => {
+    // //         client.once('qr', (qr) => resolve(qr));
+    // //         setTimeout(() => {
+    // //             //reject(res.json({status:"false",error:"QR event wasn't emitted in 30 seconds."}));
+    // //             //return res.json({status:"false",error:"QR event wasn't emitted in 30 seconds."});
+    // //             if(!res.headersSent){
+    // //                 res.status(301).json({status:"false",error:"QR event wasn't emitted in 30 seconds."});
+    // //                 return;
+    // //             }
+    // //         }, 30000)
+        
+    // // });
+
+    ////qrcode.generate(qr,{small : true})
+    
+    // var infClient2 = client.info;
+    // if(infClient2 !==undefined &&  infClient2 !==null){
+    //     console.log('Client is ready222!');
+    //     if(!res.headersSent){
+    //         res.status(301).json({name : infClient2.pushname , sourcePhone : infClient2.wid.user});
+    //         return;
+    //     }
+    // }
+
+    // // انتظر لمدة 2 ثواني (2000 مللي ثانية)
+    // await wait(2000);  
+    // console.log('2 seconds later...');
+    // console.log(id);
+
+
+    // //console.log(res.headersSent);
+    // if(!res.headersSent){
+    //     //client.initialize();
+    //     res.status(200).json({
+    //         status: true
+    //     });
+    //     return;
+    // }
+
+    // if(res.headersSent){
+    //     return;
+    // }
+
+    //     //res.write("<img id='img_qr' name='img_qr' src='"+qr+"'/>");
+    //     //res.send(qr);
+    // } catch (error) {
+    //     console.log(error);
+    //     if(!res.headersSent){
+    //         res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
+    //         return;
+    //     }   
+    // }
+//         //client.on('qr', async(qr) => {
+    //try{ 
+    client.once('qr', async(qr) => {
+        // Generate and scan this code with your phone
+        //qrcode.generate(qr,{small : true})
+        try {
+
+        return res.status(200).json({
+                status: true,
+                response: {qr : qr  },
+            });
+
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({status:"false",error:"Error Server from Generate QrCode New: "+error.message});
+            return;
+        }
+          //var infClient = client.info;
+        //console.log('QR RECEIVED', qr);
+   });
+    
+//     client.once('ready', () => {
+//         //var infClient = client.info;
+//         console.log('Client is ready!');
+//         //return res.status(301).json({name : infClient.pushname , sourcePhone : infClient.wid.user});
+//     });
+
+//     // client.once('authenticated', (session) => {
+//     //     console.log('Authenticated successfully');
+//     //     // يمكنك هنا حفظ بيانات الجلسة إذا كنت ترغب في ذلك
+//     // });
+    
+//     // client.once('auth_failure', (message) => {
+//     //     console.error('Authentication failed:', message);
+//     // });
+
+
+} catch (error) {
+    console.log(error);
+    res.status(500).json({status:"false",error:"Error Server from Generate QrCode"});
+    return;
+}
+}
+
+module.exports = {sendMedia,sendMessage_text, generateQrCode,test,addNewClient,generateQrCodeNew};
 
 

@@ -2,8 +2,14 @@ const express = require('express')
 const cors = require('cors')
 
 const app = express()
+const path = require('path');
 
 app.use(cors())
+
+// app.use(cors({
+//   origin: 'https://yourdomain.com', // ضع هنا الأصل المسموح به
+//   credentials: true
+// }));
 const compression = require('compression')
 app.use(compression())
 
@@ -41,10 +47,29 @@ EventEmitter.defaultMaxListeners = 20;
 //   next();
 // });
 
+const routerpath = path.join(__dirname, './routers/wa');
 
-const router = require("./routers/wa");
+const router = require(routerpath);
+
+
+const fs = require('fs');
+const logFile = fs.createWriteStream('./errors/error.txt', { flags: 'a' });
+
+process.on('generateQrCodeNew', (err) => {
+    logFile.write(`[${new Date().toISOString()}] ${err.stack}\n`);
+    process.exit(1);
+});
+
+//const router = require("./routers/wa");
 app.use(bodyParser.json());
 app.use("/",router);
+
+app.use((req, res, next) => {
+  req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+  res.setTimeout(35000); // 35000 مللي ثانية (35 ثانية)
+  next();
+});
+
 /*app.get('/', (req, res) => {
   res.send('Hello World!')
 })*/

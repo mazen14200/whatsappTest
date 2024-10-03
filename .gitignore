@@ -1,1 +1,11 @@
-node_modules
+node_modules/
+chrome/
+chrome-mac/
+chromium/
+5.zip
+chrome.zip
+node_modules.zip
+WaMa2_worked.zip
+WaMa3.zip
+Wama4.zip
+waMaApi.rar

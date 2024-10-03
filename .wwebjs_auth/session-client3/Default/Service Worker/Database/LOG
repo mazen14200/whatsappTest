@@ -1,3 +1,2 @@
-2024/09/19-16:15:51.469 13c8c Reusing MANIFEST C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session-client3\Default\Service Worker\Database/MANIFEST-000001
-2024/09/19-16:15:51.470 13c8c Recovering log #3
-2024/09/19-16:15:51.470 13c8c Reusing old log C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session-client3\Default\Service Worker\Database/000003.log 
+2024/09/23-14:37:04.759 2741c Creating DB C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session-client3\Default\Service Worker\Database since it was missing.
+2024/09/23-14:37:04.769 2741c Reusing MANIFEST C:\Users\HP\Desktop\waMaApi\.wwebjs_auth\session-client3\Default\Service Worker\Database/MANIFEST-000001

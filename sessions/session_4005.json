@@ -1,0 +1,10 @@
+{
+    "WABrowserId": "your-browser-id",
+    "WASecretBundle": {
+        "key": "your-key",
+        "encKey": "your-enc-key",
+        "macKey": "your-mac-key"
+    },
+    "WAToken1": "your-token1",
+    "WAToken2": "your-token2"
+}

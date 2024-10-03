@@ -1,0 +1,20 @@
+[1003/115254.711:INFO:CONSOLE(123)] "Event handler of 'x-storagemutated-1' event must be added on the initial evaluation of worker script.", source: https://static.whatsapp.net/rsrc.php/v3/yy/r/ceIlwx5phAQ.js?_nc_x=Ij3Wp8lg5Kz (123)
+[1003/115258.893:INFO:CONSOLE(343)] "WAWebLoggerWorker initialized", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115258.893:INFO:CONSOLE(343)] "[storage] start setSchemaVersions from fts worker interface", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115258.894:INFO:CONSOLE(343)] "[storage] set schema versions: [model-storage,159,fts-storage,8,jobs-storage,1,lru-media-storage-idb,2,offd-storage,4,qpl-storage,0,signal-storage,6,worker-storage,1,sw,2,wawc,14,wawc_db_enc,2]. is worker? true", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.578:INFO:CONSOLE(343)] "FTS:Delegate: start indexer", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.578:INFO:CONSOLE(343)] "FTS:Delegate: start perform init", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.578:INFO:CONSOLE(343)] "FTS:Delegate: schema versions ready", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.578:INFO:CONSOLE(343)] "FTS:Delegate: before db initialization", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.580:INFO:CONSOLE(343)] "[storage] applying schema versions from [0 to 8] for the database: 'fts-storage'", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115301.611:INFO:CONSOLE(343)] "[storage] applying schema versions from [0 to 159] for the database: 'model-storage'", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115302.107:INFO:CONSOLE(71)] "ErrorUtils caught an error:
+
+Converting to a string will drop content data. Hash="undefined" Translation="{user_name} أضاف {names}" Content="{"key":null,"ref":null,"props":{"contact":{"id":"201275587027@c.us","type":"in","isContactSyncCompleted":1,"textStatusLastUpdateTime":-1,"syncToAddressbook":false},"showNotifyName":true,"elevatedPushNamesEnabled":true,"onClick":null},"_owner":null}" (type=object,Object)
+
+Subsequent non-fatal errors won't be logged; see https://fburl.com/debugjs.", source: https://static.whatsapp.net/rsrc.php/v3/y-/r/C2nfdIck3tZ.js?_nc_x=Ij3Wp8lg5Kz (71)
+[1003/115303.853:INFO:CONSOLE(343)] "FTS:Delegate: after db initialization", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115303.855:INFO:CONSOLE(343)] "FTS:Manifest Writer: No changes made, current:['3.1', '1'], latest:['3.1', '1']", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115303.856:INFO:CONSOLE(343)] "FTS:Delegate: Inited", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115303.856:INFO:CONSOLE(343)] "FTS:Delegate: Init indexing ops", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
+[1003/115303.861:INFO:CONSOLE(343)] "FTS:Indexer:indexQueuedBatch: Starting new batch size : 1000", source: https://static.whatsapp.net/rsrc.php/v3/yM/r/tOlRlBUsLES.js?_nc_x=Ij3Wp8lg5Kz (343)
