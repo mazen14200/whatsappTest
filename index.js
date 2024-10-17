@@ -20,7 +20,7 @@ const bodyParser = require('body-parser')
 const EventEmitter = require('events');
 
 // زيادة الحد الأقصى الافتراضي لكل EventEmitter إلى 20
-EventEmitter.defaultMaxListeners = 20;
+EventEmitter.defaultMaxListeners = 45;
 
 // app.use((req, res, next) => {
 //   const timeout = 30000; // 30000 مللي ثانية = 30 ثواني

@@ -1,11 +1,11 @@
 
-const mysql = require('mysql');
+//const mysql = require('mysql');
+const mssql = require('mssql');
 
-
-var connection = mysql.createConnection({
+var connection = mssql.createConnection({
     host: "localhost",
-    user: "bnanwhats",
-    password: "Maz@123456en",
+    //user: "bnanwhats",
+    //password: "Maz@123456en",
     database: "whats_db"
     
   });

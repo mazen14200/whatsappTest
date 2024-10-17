@@ -1,6 +1,5 @@
 
-const { Client,LocalAuth,MessageMedia, List } = require('whatsapp-web.js');
-
+const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 //const puppeteer = require('puppeteer');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
@@ -16,13 +15,11 @@ const authDir = path.join(__dirname, '../sessions');
 //const cachDir = path.join(__dirname, '../caches');
 //const chromepath = path.join(__dirname, '../usr/bin/chromium-browser');
 const chromepath = path.join(__dirname, '../chrome/win64-127.0.6533.88/chrome-win64/chrome.exe');
-console.log(authDir);
 //const fs = require('fs');
 //const fs = require('graceful-fs');
-const { promises } = require('dns');
+//const { promises } = require('dns');
 //const sessionData = process.env.WHATSAPP_SESSION ? JSON.parse(process.env.WHATSAPP_SESSION) : null;
 //const rimraf = require('rimraf');
-const sid = "client5";
 //const auth_dataPath =   './.wwebjs_auth' || process.env.WWEBJS_AUTH_PATH;
 //const auth_userDataDir =   './.wwebjs_auth'+'/session-'+sid || process.env.WWEBJS_AUTH_PATH +'/session-'+sid;
 //const cachePath =  './.wwebjs_cache' || process.env.WWEBJS_CACHE_PATH;
@@ -46,151 +43,485 @@ async function stop(path) {
     console.log(promise);
   }
    
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
 
-const mysql = require('mysql');
+//const mysql = require('mysql');
+//const connection = require('msnodesqlv8');
+//const { console } = require('inspector');
 
 
-var connection = mysql.createConnection({
-    host: "localhost",
-    user: "bnanwhats",
-    password: "Maz@123456en",
-    database: "whats_db"
+// var connectionString = {
+//     host: "localhost",
+//     //user: "bnanwhats",
+//     //password: "Maz@123456en",
+//     database: "whats_db"
     
-  });
-  
-  function connect(){
-  connection.connect(function(err) {
-      if (err) throw err;
-      console.log("Connected!");
-      connection.query(sql, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-      });
-    });
-  }
-  
-    function insert_source(source_id){
-      connection.connect(function(err) {
-          if (err) throw err;
-          console.log("Connected!");
-          //var sql = "INSERT INTO source (source_id) VALUES ('4004', 'Highway 37')";
-          var sql = "INSERT INTO source (source_id) VALUES ('"+ source_id +"')";
-          connection.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log("1 record inserted");
-          });
-        });
-    }
-    //insert_source("4005");
-    function insert_source_user_mob(source_id,source_name,source_mobile){
-      connection.connect(function(err) {
-          if (err) throw err;
-          console.log("Connected!");
-          //var sql = "INSERT INTO source (source_id) VALUES ('4004', 'Highway 37')";
-          var sql = "INSERT INTO source (source_id,source_name,source_mobile) VALUES ('"+ source_id +"','"+ source_name +"','"+ source_mobile +"')";
-          connection.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log("1 record inserted");
-          });
-        });
-    }
-    //insert_source_user_mob('4006','mazen مازن عصام','201112847004');
-    
-    function update_source_user_mob(source_id,source_name,source_mobile,source_status){
-      //connection.connect(function(err) {
-          //if (err) throw err;
-          //console.log("Connected!");
-          var sql = "UPDATE source SET source_name = '"+source_name+"' , source_mobile = '"+source_mobile+"' , source_status = '"+source_status+"' WHERE source_id = '"+source_id+"'";
-          connection.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log(result.affectedRows + " record(s) updated");
-          });
-        //});
-    }
+//   };
 
-    function update_source_disconnected(source_id,source_status){
-        //connection.connect(function(err) {
-            //if (err) throw err;
-            //console.log("Connected!");
-            var sql = "UPDATE source SET source_status = '"+source_status+"' WHERE source_id = '"+source_id+"'";
-            connection.query(sql, function (err, result) {
-              if (err) throw err;
-              console.log(result.affectedRows + " record(s) updated");
-            });
-          //});
+  
+const mssql = require('mssql');
+//const { insert_source_user_mob } = require('./dbContext');
+
+
+const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwhats;Password=Maz@123456en;TrustServerCertificate=True;';
+//const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwhats;Password=Maz@123456en;Trusted_Connection=True;TrustServerCertificate=True;';
+
+    async function executeQuery(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+            let query1 = "INSERT INTO source (source_id) VALUES ('"+ source_id +"')";
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            const result = await request.query(query1);
+    
+            resolve(result.rowsAffected[0]);
+            //return result.rowsAffected[0];
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
       }
-    //update_source_user_mob('4006','maze','201104','A');
-  // // //     function get_source_Data(source_id) {
-  // // //     connection.connect(function(err) {
-  // // //         if (err) throw err;
-  // // //         console.log("Connected!");
-  // // //         var sql = "SELECT * FROM source  WHERE source_id = '"+source_id+"'";
-  // // //         connection.query(sql, function (err, result,fields) {
-  // // //           if (err) throw err;
-  // // //           console.log(result[0].source_name);
-  // // //           return [result[0].source_name,result[0].source_mobile];
-  // // //         });
-  // // //       });
-  // // //   }
-  // // //   get_source_Data('4006').then(results=>
-  // // //     console.log(results)
-  // // //   );
-  
-    function getListOfStringsFromDB() {
-      return new Promise((resolve, reject) => {
-          const query = 'SELECT source_name FROM source'; 
-  
-          connection.query(query, (error, results) => {
-              if (error) {
-                  return reject(error); 
-              }
-  
-              // تحويل النتائج إلى قائمة من السلاسل النصية
-              const names = results.map(row => row.source_name);
-              resolve(names); // إرجاع قائمة السلاسل النصية
-          });
+
+    //   executeQuery('4003').then(result=>{
+    //     console.log("Affected rowes: ",result," :Rows");
+    //   });
+
+    // // //   const results = await executeQuery('4002');
+    // // //   console.log("Affected rowes: ",results," :Rows");
+
+
+
+    async function insert_setup_installation(company_id,company_name) {
+        return new Promise(async function(resolve, reject){
+        try{
+            let query1 = "INSERT INTO setup_installation (company_id,company_name,company_status) VALUES ('"+ company_id +"',N'" +company_name+"','" +"A"+"')";
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            const result = await request.query(query1);
+            resolve(result.rowsAffected[0]);
+            //return result.rowsAffected[0];
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+      }
+
+      async function getListOfAll_Companies_FromDB() {
+        return new Promise(async function(resolve, reject){
+        try{
+            let query1 = 'SELECT company_id,company_name,company_status FROM setup_installation'; 
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            const results = await request.query(query1);
+            var string=JSON.stringify(results);
+            //console.log('>> string: ', string );
+            var json =  JSON.parse(string);
+            console.log('>> json: ', json);
+            resolve(json);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+      }
+      
+      getListOfAll_Companies_FromDB().then(result=>{
+        console.log("Affected rowes: ",result," :Rows");
       });
-  }
+
+
+      async function get_source_spacific_A_N(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let source_status ='A';
+            console.log("my id is :",source_id);
+            //let currentTime = new Date();
+            //let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            //let query1 = "SELECT * FROM source WHERE source_id = '"+source_id+"' AND source_status ='"+source_status+"'";
+            let query1 = "SELECT * FROM source WHERE (( source_id = '"+source_id+"' AND source_status ='"+source_status+"' AND source_Login_Datetime IS NOT NULL) OR ( source_id = '"+source_id+"' AND source_status ='N' AND source_Login_Datetime IS NULL))";
+            const results = await request.query(query1);
+            //console.log(results.recordsets);
+            //console.log(results.recordsets[0]);
+            //console.log(results.recordset[0]);
+            //console.log(results);
+            //console.log(results.recordset[0]);
+            if(results.recordset[0] === undefined){
+                console.log("get_source_spacific_A_N : NULL")
+                resolve("NULL");
+            }
+            else{
+                console.log("get_source_spacific_A_N : ",results.recordset[0])
+                resolve(results);
+            }
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+      }
+      
+      async function get_source_spacific_A_only(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let source_status ='A';
+            console.log("my id is :",source_id);
+            //let currentTime = new Date();
+            //let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            //let query1 = "SELECT * FROM source WHERE source_id = '"+source_id+"' AND source_status ='"+source_status+"'";
+            let query1 = "SELECT * FROM source WHERE ( source_id = '"+source_id+"' AND source_status ='"+source_status+"' AND source_Login_Datetime IS NOT NULL) ";
+            const results = await request.query(query1);
+            //console.log(results.recordsets);
+            //console.log(results.recordsets[0]);
+            //console.log(results.recordset[0]);
+            //console.log(results);
+            //console.log(results.recordset[0]);
+            if(results.recordset[0] === undefined){
+                console.log("get_source_spacific_A_only : NULL")
+                resolve("NULL");
+            }
+            else{
+                console.log("get_source_spacific_A_only : ",results.recordset[0])
+                resolve(results);
+            }
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+      }
+
+      async function insert_source_New(source_id ,source_status) {
+        get_source_spacific_A_N(source_id).then(res=>{
+            if(res == "NULL"){
+                console.log("i will insert");
+                return new Promise(async function(resolve, reject){
+                    try{
+                        poolconnection = await mssql.connect(connectionString);
+                        const request = await poolconnection.request();
+                        //let currentTime = new Date();
+                        //let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+                        let query1 = "INSERT INTO source (source_id,source_status) VALUES( '"+source_id+"','"+source_status+"')";
+                        const results = await request.query(query1);
+                        console.log("inserted sucess");
+                        resolve(results);
+                        //resolve(result.rowsAffected[0]);
+                    }catch(err){
+                        console.log('Error in DB connection: ',err);
+                        reject(err);
+                    }
+                    });
+            }
+        }); 
+      }
+
+
+
+
+    //   async function insert_source_user_mob(source_id,source_name,source_mobile,source_deviceType ,source_isBussenis ,source_status) {
+    //     return new Promise(async function(resolve, reject){
+    //     try{
+    //         poolconnection = await mssql.connect(connectionString);
+    //         const request = await poolconnection.request();
+    //         let currentTime = new Date();
+    //         let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+    //         let query1 = "INSERT INTO source (source_id,source_name,source_mobile,source_deviceType,source_isBussenis,source_Login_Datetime,source_status) VALUES( '"+source_id+"', N'"+source_name+"' ,'"+source_mobile+"' ,'"+source_deviceType+"' ,'"+source_isBussenis+"' ,'"+currentTime_login+"','"+source_status+"')";
+    //         const results = await request.query(query1);
+    //         resolve(results);
+    //         //resolve(result.rowsAffected[0]);
+    //     }catch(err){
+    //         console.log('Error in DB connection: ',err);
+    //         reject(err);
+    //     }
+    //     });
+    //   }
+
+//     //insert_source_user_mob('4006','mazen مازن عصام','201112847004');
+    
+    async function update_source_user_mob(source_id,source_name,source_mobile,source_deviceType ,source_isBussenis ,source_status) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            //let currentTime = new Date();            
+            //let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let currentTime_login = local_currentTime;
+            let query1 = "UPDATE source SET source_name = N'"+source_name+"' , source_mobile = '"+source_mobile+"' , source_deviceType = '"+source_deviceType+"' , source_isBussenis = '"+source_isBussenis+"' , source_status = '"+source_status+"' , source_Login_Datetime = '"+currentTime_login+"' WHERE source_id = '"+source_id+"'";
+            const results = await request.query(query1);
+            resolve(results);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+
+
+    async function update_source_by_id_Logout(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            //let currentTime = new Date();            
+            //let source_LogOut_Datetime = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            let source_status = 'N';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let source_LogOut_Datetime = local_currentTime;
+            let query1 = "UPDATE source SET source_status = '"+source_status+"' , source_LogOut_Datetime = '"+source_LogOut_Datetime+"' WHERE source_id = '"+source_id+"'";
+            const results = await request.query(query1);
+            resolve(results);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+
+    // async function update_setup_install_by_id_Active(company_id) {
+    //     return new Promise(async function(resolve, reject){
+    //     try{
+
+    //         poolconnection = await mssql.connect(connectionString);
+    //         const request = await poolconnection.request();
+    //         let company_status = 'A';
+    //         let query1 = "UPDATE setup_installation SET company_status = '"+company_status+"' WHERE company_id = '"+company_id+"'";
+    //         const results = await request.query(query1);
+    //         resolve(results);
+    //         //resolve(result.rowsAffected[0]);
+    //     }catch(err){
+    //         console.log('Error in DB connection: ',err);
+    //         reject(err);
+    //     }
+    //     });
+    // }
+
+    async function update_setup_install_by_id_Disconnected(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let source_status = 'D';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let source_LogOut_Datetime = local_currentTime;
+            let query1 = "UPDATE source SET source_status = '"+source_status+"',source_LogOut_Datetime= '"+source_LogOut_Datetime+"' WHERE source_id = '"+source_id+"' AND source_status ='A'";
+            const results = await request.query(query1);
+            resolve(results);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+    // // async function insert_source_user_mob(source_id,source_name,source_mobile,source_deviceType ,source_isBussenis ,source_status) {
+    // //     return new Promise(async function(resolve, reject){
+    // //     try{
+
+    // //         poolconnection = await mssql.connect(connectionString);
+    // //         const request = await poolconnection.request();
+    // //         let currentTime = new Date();
+    // //         let currentTime_login = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+    // //         let query1 = "UPDATE source SET source_name = '"+source_name+"' , source_mobile = '"+source_mobile+"' , source_deviceType = '"+source_deviceType+"' , source_isBussenis = '"+source_isBussenis+"' , source_status = '"+source_status+"' , source_Login_Datetime = '"+currentTime_login+"' WHERE source_id = '"+source_id+"'";
+    // //         const results = await request.query(query1);
+    // //         resolve(results);
+    // //         //resolve(result.rowsAffected[0]);
+    // //     }catch(err){
+    // //         console.log('Error in DB connection: ',err);
+    // //         reject(err);
+    // //     }
+    // //     });
+    // // }
+
+    async function update_source_disconnected(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            //let currentTime = new Date();            
+            //let currentTime_out = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            let source_status = 'N';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let currentTime_out = local_currentTime;
+            let query1 = "UPDATE source SET source_status = '"+source_status+"' , source_LogOut_Datetime = '"+currentTime_out+"' WHERE source_id =  '"+source_id+"' AND source_LogOut_Datetime IS NULL ";
+            const results = await request.query(query1);
+            resolve(results);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+    async function get_source_Data(source_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+//           let query1 = 'SELECT source_name,source_mobile FROM source where source_id='+"'"+source_id+"' AND source_status ='A' "
+            let query1 = "SELECT * FROM source  WHERE source_id = '"+source_id+"' AND source_status ='A'";
+            const results = await request.query(query1);
+            //var string=JSON.stringify(results);
+            //console.log('>> string: ', string );
+            //var json =  JSON.parse(string);
+            //console.log('>> json: ', json);
+            //resolve(json);
+            console.log('>> data of ready: ', results.recordset);
+            resolve(results.recordset);
+            //resolve(result.rowsAffected[0]);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+//     //update_source_user_mob('4006','maze','201104','A');
+
+async function getListOfStringsFromSourceDB(source_id) {
+    return new Promise(async function(resolve, reject){
+    try{
+
+        poolconnection = await mssql.connect(connectionString);
+        const request = await poolconnection.request();
+        let query1 = 'SELECT source_name FROM source'; 
+        const results = await request.query(query1);
+        // تحويل النتائج إلى قائمة من السلاسل النصية
+        const names = results.map(row => row.source_name);
+        resolve(names); // إرجاع قائمة السلاسل النصية       
+        //resolve(result.rowsAffected[0]);
+    }catch(err){
+        console.log('Error in DB connection: ',err);
+        reject(err);
+    }
+    });
+}
+
+async function getListOfStringsFrom_Setup_Active_DB() {
+    return new Promise(async function(resolve, reject){
+    try{
+
+        poolconnection = await mssql.connect(connectionString);
+        const request = await poolconnection.request();
+        let query1 = "SELECT company_id FROM setup_installation WHERE company_status <> 'N'"; 
+        const results = await request.query(query1);
+        // تحويل النتائج إلى قائمة من السلاسل النصية
+        //const names = results.map(row => row.company_id);
+        resolve(results.recordset); // إرجاع قائمة السلاسل النصية       
+        //resolve(result.rowsAffected[0]);
+    }catch(err){
+        console.log('Error in DB connection: ',err);
+        reject(err);
+    }
+    });
+}
+
+async function getListOfStringsFrom_Setup_NotSub_DB() {
+    return new Promise(async function(resolve, reject){
+    try{
+
+        poolconnection = await mssql.connect(connectionString);
+        const request = await poolconnection.request();
+        let query1 = "SELECT company_id FROM setup_installation WHERE company_status = 'N'"; 
+        const results = await request.query(query1);
+        // تحويل النتائج إلى قائمة من السلاسل النصية
+        //const names = results.map(row => row.company_id);
+        resolve(results.recordset); // إرجاع قائمة السلاسل النصية       
+        //resolve(results.recordset[0].company_id); // إرجاع قائمة السلاسل النصية       
+        //resolve(result.rowsAffected[0]);
+    }catch(err){
+        console.log('Error in DB connection: ',err);
+        reject(err);
+    }
+    });
+}
+
+async function getListOfStringsFrom_All_Setup_Ids_DB() {
+    return new Promise(async function(resolve, reject){
+    try{
+
+        poolconnection = await mssql.connect(connectionString);
+        const request = await poolconnection.request();
+        let query1 = "SELECT company_id FROM setup_installation"; 
+        const results = await request.query(query1);
+        // تحويل النتائج إلى قائمة من السلاسل النصية
+        //const names = results.map(row => row.company_id);
+        resolve(results.recordset); // إرجاع قائمة السلاسل النصية       
+        //resolve(results.recordset[0].company_id); // إرجاع قائمة السلاسل النصية       
+        //resolve(result.rowsAffected[0]);
+    }catch(err){
+        console.log('Error in DB connection: ',err);
+        reject(err);
+    }
+    });
+}
+
+getListOfStringsFrom_Setup_Active_DB().then(result =>{
+    console.log("All Ids of Setup_Active", result);
+});
+
+getListOfStringsFrom_Setup_NotSub_DB().then(result =>{
+    console.log("All Ids of Setup_NotSub", result);
+});
+
+getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
+    console.log("All Ids of All_Setup_Ids", result);
+});
+//   function get_source_Data(source_id) {
+//       return new Promise((resolve, reject) => {
+//           const query = 'SELECT source_name,source_mobile FROM source where source_id='+"'"+source_id+"' AND source_status ='A' "
   
-  // استخدام الدالة مع then()
-  getListOfStringsFromDB()
-      .then((names) => {
-          console.log('Product names:', names); // طباعة قائمة أسماء المنتجات
-      })
-      .catch((error) => {
-          console.log('Error:', error);
-      });
+//           connection.query(connectionString,query, (error, results) => {
+//               if (error) {
+//                   return reject(error); 
+//               }
   
-  function get_source_Data(source_id) {
-      return new Promise((resolve, reject) => {
-          const query = 'SELECT source_name,source_mobile FROM source where source_id='+"'"+source_id+"' AND source_status ='A' "
+//               // تحويل النتائج إلى قائمة من السلاسل النصية
+//               //const names = results.map(row => row.source_name);
+//               //resolve(names); // إرجاع قائمة السلاسل النصية
+//               resolve(results); // إرجاع قائمة السلاسل النصية
+//           });
+//       });
+//   }
   
-          connection.query(query, (error, results) => {
-              if (error) {
-                  return reject(error); 
-              }
-  
-              // تحويل النتائج إلى قائمة من السلاسل النصية
-              //const names = results.map(row => row.source_name);
-              //resolve(names); // إرجاع قائمة السلاسل النصية
-              resolve(results); // إرجاع قائمة السلاسل النصية
-          });
-      });
-  }
-  
-  // استخدام الدالة مع then()
-  get_source_Data('4006')
-      .then((nresult) => {
-          console.log('Product names:', nresult); // طباعة قائمة أسماء المنتجات
-          console.log(nresult[0].source_name); // طباعة قائمة أسماء المنتجات
-          console.log(nresult[0].source_mobile); // طباعة قائمة أسماء المنتجات
-      })
-      .catch((error) => {
-          console.log('Error:', error);
-          console.log('No Data as : its not connected'); // طباعة قائمة أسماء المنتجات
-      });
+//   // استخدام الدالة مع then()
+//   get_source_Data('4006')
+//       .then((nresult) => {
+//           console.log('Product names:', nresult); // طباعة قائمة أسماء المنتجات
+//           console.log(nresult[0].source_name); // طباعة قائمة أسماء المنتجات
+//           console.log(nresult[0].source_mobile); // طباعة قائمة أسماء المنتجات
+//       })
+//       .catch((error) => {
+//           console.log('Error:', error);
+//           console.log('No Data as : its not connected'); // طباعة قائمة أسماء المنتجات
+//       });
 
 
 
@@ -201,8 +532,9 @@ var connection = mysql.createConnection({
 
 
 var myList = new Array();
+var myindixes = new Array();
 
-function setAllsessions_Initializing(id){
+async function setAllsessions_Initializing(id){
     let client_id = "client_"+id;
     let this_client = new Client({
     authStrategy : new LocalAuth({
@@ -225,7 +557,18 @@ function setAllsessions_Initializing(id){
 
 this_client.on('ready', async() => {
     console.log('Client is ready!: ',id);
-    update_source_user_mob(id, this_client.info.pushname, this_client.info.wid.user,'A');
+    let clientInfo = this_client.info;
+    console.log(clientInfo);
+
+    insert_source_New(id,'N').then(result=>{
+    update_source_user_mob(id, clientInfo.pushname, clientInfo.wid.user, clientInfo.platform , clientInfo.isBusiness ,'A').then(result=>{
+        console.log("Subscriped is saved in DB Successfully");       
+        //wait(3000);
+        //update_setup_install_by_id_Active(id).then(res=>{
+        //});
+    });
+    });
+    
     //console.log(this_client.info,this_client.info.platform);
 });
 
@@ -244,27 +587,37 @@ this_client.on('auth_failure', async(msg) => {
     //fs.unlinkSync(SESSION_FILE_PATH); // حذف ملف الجلسة إذا فشلت المصادقة
 });
 
-this_client.on('disconnected', async (resson) => {
-    process.on('uncaughtException', async (err) => {
+this_client.on('disconnected', (resson) => {
+    process.on('uncaughtException', (err) => {
         console.error('An error occurred_1_disconnected:', err);
-        update_source_disconnected(id,'N');
-          // Catching error
-        //wait (5000);
-        let path_to = './.wwebjs_auth/session-client_'+id.toString()+'/Default';
-        //fs.rmSync(path_to, { recursive: true, force: true });
-        //stop(path_to).catch(console.error);
-        //await wait (11000);
-        //this_client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
-        await wait (11000);
-        this_client.initialize();  // تأكد من تدمير العميل وإغلاق المتصفح
+        //this_client.initialize();  // تأكد من تدمير العميل وإغلاق المتصفح
         //await process.exit(1);
     });
-    console.error('Client disconnected: ',id, resson);
+    console.log('Client disconnected: ',id, resson);
+    console.log('Client disconnected: ',id, resson);
+    console.log('Client disconnected: ',id, resson);
 
+    update_setup_install_by_id_Disconnected(id).then(result=>{
+        insert_source_New(id,'N').then(res=>{
+            console.log("Un Subscriped (Disconnected) is saved in DB Successfully");
+        });
+    });
+    // Catching error
+    //wait (5000);
+    // // await wait (3000);
+    // // console.log('I waited 3 seconds');
+    // // let path_to = './.wwebjs_auth/session-client_'+id.toString()+'/Default';
+    // // // // //fs.rmSync(path_to, { recursive: true, force: true });
+    // // stop(path_to).catch(console.error);
+    // // // // await wait (6000);
+    // // // // console.log('I waited 6 seconds');
+    //this_client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
+    // // await wait (11000);
+    // // console.log('I waited 11 seconds');
+    //setAllsessions_Initializing(id);
     //await this_client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
     //removeSession(id);
     //await process.exit(1);
-    console.error('An error occurred_1_disconnected:', error);
 });
 
 this_client.on('error', async (error) => {
@@ -277,16 +630,28 @@ this_client.on('error', async (error) => {
 this_client.initialize();
 
 //myList.push(this_client);
-let myid = id.substring(2);
+let myid = id.substring(1);
 let numId = Number(myid);
 myList.splice(numId, 0, this_client);
+myindixes.splice(numId, 0, numId);
 
 }
 
-for(x=4001 ; x<4010 ; x++){
-    setAllsessions_Initializing(x.toString())
-}
+// for(x=4001 ; x<4010 ; x++){
+//     setAllsessions_Initializing(x.toString())
+// }
     
+getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
+    result.forEach(element => {
+        console.log("All Ids of ", element.company_id);
+
+        setAllsessions_Initializing(element.company_id.toString())
+    });
+    //console.log(myList);
+    //console.log(myindixes.indexOf(32));
+    //console.log(myList[myindixes.indexOf(32)]);
+    //console.log("All Ids of All_Setup_Ids", result);
+});
 
 // مفتاح سري لتوقيع الـ JWT
 const SECRET_KEY = 'your-secret-key';
@@ -308,7 +673,7 @@ let sessions = {};
 //     var createStream = fs.createWriteStream(pathSession);
 // createStream.end();
 // }
-
+//setAllsessions_Initializing('4020');
 // دالة لحذف ملف
 function deleteFile(filePath) {
     fs.unlink(filePath, (err) => {
@@ -358,79 +723,18 @@ const client5 = new Client({
 
 });
 
-const client2 = new Client({
-    authStrategy : new LocalAuth({
-        //dataPath: auth_dataPath,        
-        clientId: 'client2',
-    }),
-    session: sessions, // إذا كانت الجلسة موجودة، يتم استخدامها
-    puppeteer: {
-        headless: true, // تشغيل المتصفح في وضع headless
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        timeout: 29000, // زيادة وقت الانتظار إلى 29 ثانية
-        ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
-        ////cachePath: cachePath
-        }
-
-});
-
-const client3 = new Client({
-    authStrategy : new LocalAuth({   
-        //dataPath: auth_dataPath,         
-        clientId: 'client3',
-    }),
-    session: sessions, // إذا كانت الجلسة موجودة، يتم استخدامها
-    puppeteer: {
-        headless: true, // تشغيل المتصفح في وضع headless
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        timeout: 29000, // زيادة وقت الانتظار إلى 29 ثانية
-        ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
-        ////cachePath: cachePath
-    }
-});
 // Done client
 const client = client5;
 
 
 
 
-        
-//client.on('qr', (qr) => {
-// // client.on('qr', (qr) => {
-// //     // Generate and scan this code with your phone
-// //     qrcode.generate(qr,{small : true});
-// //     console.log('QR RECEIVED', qr);
-// // });
-
-// client.on('ready', () => {
-//     console.log('Client is ready!');
-// });
+  
 
 // // client.on('disconnected', (reason) => {
 // //     console.log('Client was disconnected:', reason);
 // //     client.initialize(); // إعادة التهيئة تلقائيًا عند الانفصال
 // // });
-
-// // // حفظ الجلسة عند نجاح المصادقة
-// // client.on('authenticated', (session) => {
-// //     //sessions = session;
-// //     console.log(session);
-// //     fs.writeFile(pathSession, JSON.stringify(session), (err) => {
-// //         if (err) {
-// //             console.error('فشل في حفظ بيانات الجلسة:', err);
-// //         } else {
-// //             console.log('تم حفظ بيانات الجلسة بنجاح.');
-// //         }
-// //     });
-// // });
-
-// // // التعامل مع فقدان الجلسة
-// // client.on('auth_failure', (msg) => {
-// //     console.error('فشل المصادقة:', msg);
-// //     fs.unlinkSync(SESSION_FILE_PATH); // حذف ملف الجلسة إذا فشلت المصادقة
-// // });
-
-// //deleteFolder('.wwebjs_auth/session-client1');
 
 
 // // client.on('disconnected', async(reason) => {
@@ -450,11 +754,6 @@ const client = client5;
 // //     client.destroy();  // تأكد من تدمير العميل بشكل صحيح
 // // });
 
-// client.on('disconnected', async (error) => {
-//     console.error('An error occurred:', error);
-//     await client.destroy();  // تأكد من تدمير العميل وإغلاق المتصفح
-//     process.exit(1);
-// });
 
 // client.on('error', async (error) => {
 //     console.error('An error occurred:', error);
@@ -498,13 +797,9 @@ const client = client5;
 //     // }
 // });
 
-// client.initialize();
 
 
 
-function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 // إنشاء أو تحميل عميل WhatsApp
 function createClient(id) {
@@ -622,12 +917,15 @@ const sendMessage_text = async (req,res)=> {
     // // const this_client = new Client({
     // //     session: sessionData  // تمرير بيانات الجلسة إذا كانت موجودة
     // // });
-    let myid = id.substring(2);
+    let myid = id.substring(1);
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
     console.log(numId);
-    let this_client = myList[numId - 1];
+    
+    //// let this_client = myList[numId - 1];
+    let this_client = myList[myindixes.indexOf(numId)];
+    
      ////////////
 
     if(apiToken !== Token){
@@ -639,19 +937,26 @@ const sendMessage_text = async (req,res)=> {
         console.log('7 seconds later...');
 
     try {
-        const user = await this_client.isRegisteredUser(phone);
-        if(user){
-            await this_client.sendMessage(phone,message).then((result) => {
-            res.json({status:"true", response: {messageId : result.id.id, source : phone ,message:message  }})
-        });
-        
+        const result_A = await get_source_spacific_A_only(id);
+        if(result_A !== "NULL"){
+            const user = await this_client.isRegisteredUser(phone);
+            if(user){
+                await this_client.sendMessage(phone,message).then((result) => {
+                res.json({status:"true", response: {messageId : result.id.id, source : phone ,message:message  }})
+            });
             
-        }else{
-            res.json({status:"false", error:"this phone not registed in whatsapp"});
+                
+            }else{
+                res.json({status:"false", error:"this phone not registed in whatsapp"});
+            }
+    
+            console.log(message);
+            console.log(phone);
         }
-
-        console.log(message);
-        console.log(phone);
+        else{
+            res.json({status:"false", error:"this Company is Disconnected From whatsapp"});
+        }
+        
 
         //res.json({message,phone});
     } catch (error) {
@@ -954,13 +1259,13 @@ const isClientReady_data = async(req,res) =>{
         res.json({
             status: true,
             message: 'Data fetched successfully',
-            data: {name:nresult[0].source_name,mobile:nresult[0].source_mobile}
+            data: {name:nresult[0].source_name,mobile:nresult[0].source_mobile,deviceType:nresult[0].source_deviceType,isBussenis:nresult[0].source_isBussenis}
         });
     })
     .catch((error) => {
         //console.error('Error:', error);
         console.log('No Data as : its not connected'); // طباعة قائمة أسماء المنتجات
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Error fetching data',
             error: error.message
@@ -972,26 +1277,26 @@ const isClientReady_data = async(req,res) =>{
 
     function generateQr(client_id){
         
-        let myid = client_id.substring(2);
+        let myid = client_id.substring(1);
         let numId = Number(myid);
         console.log(client_id);
         console.log(myid);
         console.log(numId);
-        //console.log(myList[numId - 1]);
         return new Promise((resolve, reject) => {
-            let sessionData = loadSession(client_id); // تحميل الجلسة من الملف
+            //let sessionData = loadSession(client_id); // تحميل الجلسة من الملف
             //let client_id = "client_"+id;
-            var this_client  ;
-            if(sessionData){
-                console.log('session existed in qr');
-                this_client = new Client({
-                    session: sessionData  // تمرير بيانات الجلسة إذا كانت موجودة
-                });  
-            }
-            else{
+            let this_client  ;
+            //if(sessionData){
+           //     console.log('session existed in qr');
+           //     this_client = new Client({
+          //          session: sessionData  // تمرير بيانات الجلسة إذا كانت موجودة
+          //      });  
+           // }
+            //else{
                 console.log('No session in qr');
-                this_client = myList[numId - 1];
-            }
+                //// this_client = myList[numId - 1];
+                this_client = myList[myindixes.indexOf(numId)];
+            //}
             // // // this_client.on('ready', async() => {
             // // //     console.log('Client is ready!: ',id);
             // // // });
@@ -1034,12 +1339,12 @@ const isClientReady_data = async(req,res) =>{
             //         status: true,
             //         response: {qr : qr  },
             //     });
-            return resolve(qr); 
+            resolve(qr); 
 
     
             } catch (error) {
                 console.log(error);
-                return reject(error); 
+                reject(error); 
                 //res.status(500).json({status:"false",error:"Error Server from Generate QrCode New: "+error.message});
                 //return;
             }
@@ -1066,7 +1371,7 @@ const isClientReady_data = async(req,res) =>{
         .catch((error) => {
             //console.error('Error:', error);
             console.log('No Qr as : its connected before'); // طباعة قائمة أسماء المنتجات
-            res.status(500).json({
+            res.status(200).json({
                 status: false,
                 message: 'No Qr as : its connected before',
                 error: error.message
@@ -1074,6 +1379,50 @@ const isClientReady_data = async(req,res) =>{
         });      
     }
 
+    const addNew_Device = async(req,res) =>{
+        //console.log(client.info);
+        const id = req.params.id || req.query.id || req.body.id;
+        const company_name = req.params.name ||req.query.name || req.body.name;
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+
+        setAllsessions_Initializing(id)
+        //await wait(7000)
+        //insert_source(id);
+        .then((result)=>{
+            insert_setup_installation(id,company_name).then((result1)=>{
+                insert_source_New(id ,'N').then(result2=>{
+
+                res.status(200).json({
+                    status: true,
+                    response: 'Device succesfully added',
+            });
+            }).catch((err1)=>{
+                res.status(200).json({
+                    status: false,
+                    response: 'Error : ocured not adedd Device',
+                    error: err1.message
+                });
+            })
+          }).catch((err2)=>{
+            res.status(200).json({
+                status: false,
+                response: 'Error : ocured not adedd Device',
+                error: err2.message
+            });
+          })
+        })
+        .catch((error) => {
+            //console.error('Error:', error);
+            console.log('Error : ocured not adedd Device'); // طباعة قائمة أسماء المنتجات
+            res.status(200).json({
+                status: false,
+                response: 'Error : ocured not adedd Device',
+                error: error.message
+            });
+        });      
+    };
+    
 // //     try {
 // //         let client_id = "client_"+id;
 // //         let this_client = new Client({
@@ -1164,6 +1513,6 @@ const isClientReady_data = async(req,res) =>{
 
 
 
-module.exports = {sendMedia,sendMessage_text, generateQrCode,test,addNewClient,generateQrCodeNew,isClientReady_data,generateQrCodeNew2};
+module.exports = {sendMedia,sendMessage_text, generateQrCode,test,addNewClient,generateQrCodeNew,isClientReady_data,generateQrCodeNew2,addNew_Device};
 
 
