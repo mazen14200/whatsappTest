@@ -262,7 +262,7 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
             let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
             let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
             let currentTime_login = local_currentTime;
-            let query1 = "UPDATE source SET source_name = N'"+source_name+"' , source_mobile = '"+source_mobile+"' , source_deviceType = '"+source_deviceType+"' , source_isBussenis = '"+source_isBussenis+"' , source_status = '"+source_status+"' , source_Login_Datetime = '"+currentTime_login+"' WHERE source_id = '"+source_id+"'";
+            let query1 = "UPDATE source SET source_name = N'"+source_name+"' , source_mobile = '"+source_mobile+"' , source_deviceType = '"+source_deviceType+"' , source_isBussenis = '"+source_isBussenis+"' , source_status = '"+source_status+"' , source_Login_Datetime = '"+currentTime_login+"' WHERE source_id = '"+source_id+"' AND source_Login_Datetime IS NULL";
             const results = await request.query(query1);
             resolve(results);
             //resolve(result.rowsAffected[0]);
@@ -534,7 +534,19 @@ getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
 var myList = new Array();
 var myindixes = new Array();
 
-async function setAllsessions_Initializing(id){
+async function setAllsessions_Initializing(id,time){
+    
+    if(time==="2"){
+        console.log("wait 20 seconds");
+        await wait(20000);
+        let myid = id.substring(1);
+        let numId = Number(myid);
+        //to remove from List and indexies
+        let index_to_remove= myindixes.indexOf(numId);
+        myList.splice(index_to_remove, 1);
+        myindixes.splice(index_to_remove, 1);
+        console.log("i finished waited 20 seconds");
+    }
     let client_id = "client_"+id;
     let this_client = new Client({
     authStrategy : new LocalAuth({
@@ -593,15 +605,22 @@ this_client.on('disconnected', (resson) => {
         //this_client.initialize();  // تأكد من تدمير العميل وإغلاق المتصفح
         //await process.exit(1);
     });
-    console.log('Client disconnected: ',id, resson);
+
     console.log('Client disconnected: ',id, resson);
     console.log('Client disconnected: ',id, resson);
 
+    removeSession(id);
+
+    console.log('Client disconnected: ',id, resson);
+    
+
     update_setup_install_by_id_Disconnected(id).then(result=>{
         insert_source_New(id,'N').then(res=>{
+            setAllsessions_Initializing(id,"2");
             console.log("Un Subscriped (Disconnected) is saved in DB Successfully");
         });
     });
+
     // Catching error
     //wait (5000);
     // // await wait (3000);
@@ -645,7 +664,7 @@ getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
     result.forEach(element => {
         console.log("All Ids of ", element.company_id);
 
-        setAllsessions_Initializing(element.company_id.toString())
+        setAllsessions_Initializing(element.company_id.toString(),"0");
     });
     //console.log(myList);
     //console.log(myindixes.indexOf(32));
@@ -1386,7 +1405,7 @@ const isClientReady_data = async(req,res) =>{
 
         res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
 
-        setAllsessions_Initializing(id)
+        setAllsessions_Initializing(id,"0")
         //await wait(7000)
         //insert_source(id);
         .then((result)=>{
