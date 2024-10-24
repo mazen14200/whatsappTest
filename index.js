@@ -16,7 +16,6 @@ app.use(compression())
 
 const port = process.env.port || 3000
 const bodyParser = require('body-parser')
-
 const EventEmitter = require('events');
 
 // زيادة الحد الأقصى الافتراضي لكل EventEmitter إلى 20
@@ -61,8 +60,10 @@ process.on('generateQrCodeNew', (err) => {
 });
 
 //const router = require("./routers/wa");
-app.use(bodyParser.json());
 app.use("/",router);
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
@@ -70,9 +71,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// السماح لـ Express بفهم البيانات المرسلة من النماذج
+app.use(express.urlencoded({ extended: true }));
+
 /*app.get('/', (req, res) => {
   res.send('Hello World!')
 })*/
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
