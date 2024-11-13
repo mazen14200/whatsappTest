@@ -1,6 +1,6 @@
 const express = require("express");
 
-const {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload} = require("../controllers/waController");
+const {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage} = require("../controllers/waController");
 
 const router = express.Router();
 
@@ -40,10 +40,18 @@ if (!fs.existsSync('../uploads')) {
 
 router.get("/api/addNew_Device", addNew_Device);
 router.post("/api/addNew_Device", addNew_Device);
+router.get("/api/checkReciver", checkReciver);
+router.post("/api/checkReciver", checkReciver);
+router.get("/api/deleteMessage", deleteMessage);
+router.post("/api/deleteMessage", deleteMessage);
 router.get("/api/generateQrCodeNew2/:id", generateQrCodeNew2);
 router.post("/api/generateQrCodeNew2/:id", generateQrCodeNew2);
 router.get("/api/isClientReady_data/:id", isClientReady_data);
 router.post("/api/isClientReady_data/:id", isClientReady_data);
+router.get("/api/logout_whats/:id", logout_whats);
+router.post("/api/logout_whats/:id", logout_whats);
+router.get("/api/getThisImage/:id", getThisImage);
+router.post("/api/getThisImage/:id", getThisImage);
 router.get("/api/test", test);
 router.get("/api/sendMedia_by_file", sendMedia_by_file);
 router.post("/api/sendMedia_by_file", sendMedia_by_file);

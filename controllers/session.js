@@ -1,29 +1,64 @@
 const fs = require('fs');
 
 const path2 = require('path');
+const { stringify, parse } = require('flatted');
 
-//const sessionFile = '../sessions_saved/session.json'; // مكان تخزين الجلسة
+function wait2(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // وظيفة لحفظ الجلسة إلى ملف
-function saveSession(session,id) {
-    let sessionFile = '../sessions_saved/session_'+id+'.json'; // مكان تخزين الجلسة
-    fs.writeFileSync(sessionFile, JSON.stringify(session));
+function save_file_Session(session_data,id) {
+    let sessionFile = path2.join(__dirname, '../sessions/session_'+id+'.json'); // مكان تخزين الجلسة
+    return new Promise(async(resolve, reject) => {    
+        try {
+            //fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
+            fs.writeFileSync(sessionFile, session_data);
+            resolve("Done");
+
+        } catch (error) {
+            console.log('Error: save_file_Session: ',id,error);
+            reject(error);
+        }
+});
     //fs.writeFileSync(sessionFile, session);
 }
 
 // وظيفة لتحميل الجلسة من ملف
-function loadSession(id) {
-    let sessionFile = '../sessions_saved/session_'+id+'.json'; // مكان تخزين الجلسة
-    if (fs.existsSync(sessionFile)) {
-        const sessionData = fs.readFileSync(sessionFile);
-        return JSON.parse(sessionData);
-        //return sessionData;
+function load_file_Session(id) {
+    let sessionFile = path2.join(__dirname, '../sessions/session_'+id+'.json'); // مكان تخزين الجلسة
+    return new Promise(async(resolve, reject) => {    
+        if(sessionFile){
+        try {
+            if (fs.existsSync(sessionFile)) {
+                const sessionData = fs.readFileSync(sessionFile, 'utf-8');
+                //resolve(JSON.parse(sessionData));
+                //resolve(CircularJSON_2.stringify(sessionData));
+                resolve(parse(sessionData));
+            }
+        } catch (error) {
+            console.log('Error: load_file_Session: ',id," ",error);
+            reject(error); 
+        }
     }
-    return null;
+    reject("No File"); 
+});
 }
 
-function wait2(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+
+
+async function remove_file_Session(id) {
+
+    let sessionFile = path2.join(__dirname, '../sessions/session_'+id+'.json');
+    if (sessionFile) {
+        console.log(sessionFile);
+        await fs.promises.rm(sessionFile, { recursive: true, force: true })
+            .catch((e) => {
+                throw new Error(e);
+            });
+        console.log("I Deleted file session succesfully: ",id );
+    }
+    //fs.unlinkSync(sessionFile); // حذف ملف الجلسة إذا فشلت المصادقة
 }
 
 async function removeSession(id) {
@@ -44,6 +79,6 @@ async function removeSession(id) {
     //fs.unlinkSync(sessionFile); // حذف ملف الجلسة إذا فشلت المصادقة
 }
 
-module.exports = { saveSession, loadSession,removeSession };
+module.exports = { removeSession ,save_file_Session,load_file_Session,remove_file_Session};
 
 

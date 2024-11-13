@@ -1,14 +1,25 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
+
+const List  = require('./List.js');
+
+//const { Client,LocalAuth,MessageMedia,List,Buttons,Contact,ClientInfo,Message,Chat,version } = require('../src.js');
+
+//////
+//////////
+///////
+//////////
+
 //const puppeteer = require('puppeteer');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const multer = require('multer');
 const body = require('body-parser');
 const querystring = require('querystring');
+const { stringify, parse } = require('flatted');
 
 const path = require('path');
-const { saveSession, loadSession, removeSession } = require('./session'); // استيراد وظائف الجلسة
+const { removeSession ,save_file_Session,load_file_Session,remove_file_Session} = require('./session'); // استيراد وظائف الجلسة
 
 //const qrcode = require('qrcode-terminal');
 
@@ -84,7 +95,7 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
             let connect_status ='D';
             console.log("my id is :",connect_id);
             //let query1 = "SELECT MAX(connect_LogOut_Datetime) AS Max_Logout ,connect_id,connect_serial FROM connect where connect_id ='"+connect_id+"' AND connect_status ='D' GROUP BY connect_id,connect_serial";
-            let query1 = "SELECT MAX(connect_serial) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id,connect_serial";
+            let query1 = "SELECT MAX(connect_serial) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id";
             const results = await request.query(query1);
             if(results.recordset[0] === undefined){
                 console.log("get_last_connect_serial : NULL");
@@ -209,6 +220,47 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
             let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
             let connect_LogOut_Datetime = local_currentTime;
             let query1 = "UPDATE connect SET connect_status = '"+connect_status+"',connect_LogOut_Datetime= '"+connect_LogOut_Datetime+"' WHERE connect_id = '"+connect_id+"' AND connect_status ='A'";
+            const results = await request.query(query1);
+            resolve(results);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+    async function update_Message_status_delivered(message_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let connect_status = 'D';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let delivered_Datetime = local_currentTime;
+            let query1 = "UPDATE Message SET Message_Status = '2',Message_Received_DateTime= '"+delivered_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Received_DateTime IS NULL";
+            const results = await request.query(query1);
+            resolve(results);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+    
+    async function update_Message_status_Read(message_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let connect_status = 'D';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let readed_Datetime = local_currentTime;
+            let query1 = "UPDATE Message SET Message_Status = '3',Message_Read_DateTime= '"+readed_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Read_DateTime IS NULL; UPDATE Message SET Message_Received_DateTime= '"+readed_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Received_DateTime IS NULL";
             const results = await request.query(query1);
             resolve(results);
         }catch(err){
@@ -346,7 +398,8 @@ async function setAllsessions_Initializing(id,time){
     if(time==="2"){
         console.log("wait 20 seconds");
         await wait(20000);
-        let myid = id.substring(1);
+        //let myid = id.substring(1);
+        let myid = id;
         let numId = Number(myid);
         //to remove from List and indexies
         let index_to_remove= myindixes.indexOf(numId);
@@ -373,10 +426,284 @@ async function setAllsessions_Initializing(id,time){
         }
 });       
 
+this_client.on('message_revoke_everyone', async (after, before) => {
+    // Fired whenever a message is deleted by anyone (including you)
+    console.log('message after it was deleted: ',after); // message after it was deleted.
+    if (before) {
+        console.log('message before it was deleted: ',before); // message before it was deleted.
+    }
+});
+
+this_client.on('message_revoke_me', async (msg) => {
+    // Fired whenever a message is only deleted in your own view.
+    console.log('message before it was deleted: ',msg.body); // message before it was deleted.
+});
+
+this_client.on('message', async msg => {
+    console.log('MESSAGE RECEIVED', msg);
+
+    if (msg.body === '!ping reply') {
+        // Send a new message as a reply to the current one
+        msg.reply('pong');
+
+    } else if (msg.body === '!ping') {
+        // Send a new message to the same chat
+        this_client.sendMessage(msg.from, 'pong');
+
+    } 
+    else if (msg.body === 'mm') {
+        // Send a new message to the same chat
+        msg.delete(true);
+    } 
+else if (msg.body === '!delete') {
+    if (msg.hasQuotedMsg) {  // hasQuotedMsg الرسالة التي تم الرد عليها بكلمة !delete
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.fromMe) {
+            quotedMsg.delete(true);
+        } else {
+            msg.reply('I can only delete my own messages');
+        }
+    }
+}
+// لعمل القائمة كاملة 
+else if (msg.body === '1' || msg.body === '١') {
+    let num = msg.body;
+    if (msg.hasQuotedMsg) {  // hasQuotedMsg <-- الرسالة الاساسية التي تم الرد عليها بحرف 1  
+        const quotedMsg = await msg.getQuotedMessage();
+        try{
+            let messageText = quotedMsg.body;
+            if(messageText.includes('(') && messageText.includes(')') && quotedMsg.fromMe){ // And replay for my origin message
+            let contract_id = messageText.split("(")[1];
+            contract_id = contract_id.split(")")[0];
+
+            console.log(messageText);
+            console.log('this contract id is: ',contract_id);
+            //msg.reply('this contract id is: '+ contract_id);
+            let mediaFile = "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/image8-2.jpg?width=595&height=400&name=image8-2.jpg";
+            let phone = msg.from;
+            //let message1 = 'this contract id is: '+ contract_id;
+            let message1 = 'تم اختيار المستند رقم : '+ num + ' ورقم عقدكم هو : '+ contract_id;
+            if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+                let media = await MessageMedia.fromUrl(mediaFile, {unsafeMime : true});
+                // await this_client.sendMessage(phone, media, { caption : message1}).then((result) => {
+                await this_client.sendMessage(phone,message1).then((result) => {
+                    console.log("Replay Sent Contract");
+                //   res.status(200).json({
+                //       status: true,
+                //       response: {messageId : result.id.id, connect : phone ,message:message1  },
+                //   });
+                });
+              }
+        }
+        }catch(error1){
+            console.log('error in : send replay For List Maz ',error1);
+        }
+    }
+}
+
+
+// لعمل القائمة كاملة 
+else if (msg.body === '2' || msg.body === '٢') {
+    let num = msg.body;
+    if (msg.hasQuotedMsg ) {  // hasQuotedMsg <-- الرسالة الاساسية التي تم الرد عليها بحرف 2   
+        const quotedMsg = await msg.getQuotedMessage();
+        try{
+            let messageText = quotedMsg.body;
+            if(messageText.includes('(') && messageText.includes(')') && quotedMsg.fromMe){ // And replay for my origin message
+            let contract_id = messageText.split("(")[1];
+            contract_id = contract_id.split(")")[0];
+
+            console.log(messageText);
+            console.log('this contract id is: ',contract_id);
+            //msg.reply('this contract id is: '+ contract_id);
+            let mediaFile = "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/image8-2.jpg?width=595&height=400&name=image8-2.jpg";
+            let phone = msg.from;
+            //let message1 = 'this contract id is: '+ contract_id;
+            let message1 = 'تم اختيار المستند رقم : '+ num + ' ورقم عقدكم هو : '+ contract_id;
+            if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+                let media = await MessageMedia.fromUrl(mediaFile, {unsafeMime : true});
+                // await this_client.sendMessage(phone, media, { caption : message1}).then((result) => {
+                await this_client.sendMessage(phone,message1).then((result) => {
+                    console.log("Replay Sent Contract");
+                //   res.status(200).json({
+                //       status: true,
+                //       response: {messageId : result.id.id, connect : phone ,message:message1  },
+                //   });
+                });
+              }
+        }
+        }catch(error1){
+            console.log('error in : send replay For List Maz ',error1);
+        }
+    }
+}
+
+
+// لعمل القائمة كاملة 
+else if (msg.body === '3' || msg.body === '٣') {
+    let num = msg.body;
+    if (msg.hasQuotedMsg ) {  // hasQuotedMsg <-- الرسالة الاساسية التي تم الرد عليها بحرف 3   
+        const quotedMsg = await msg.getQuotedMessage();
+        try{
+            let messageText = quotedMsg.body;
+            if(messageText.includes('(') && messageText.includes(')') && quotedMsg.fromMe){ // And replay for my origin message
+            let contract_id = messageText.split("(")[1];
+            contract_id = contract_id.split(")")[0];
+
+            console.log(messageText);
+            console.log('this contract id is: ',contract_id);
+            //msg.reply('this contract id is: '+ contract_id);
+            let mediaFile = "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/image8-2.jpg?width=595&height=400&name=image8-2.jpg";
+            let phone = msg.from;
+            //let message1 = 'this contract id is: '+ contract_id;
+            let message1 = 'تم اختيار المستند رقم : '+ num + ' ورقم عقدكم هو : '+ contract_id;
+            if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+                let media = await MessageMedia.fromUrl(mediaFile, {unsafeMime : true});
+                // await this_client.sendMessage(phone, media, { caption : message1}).then((result) => {
+                await this_client.sendMessage(phone,message1).then((result) => {
+                    console.log("Replay Sent Contract");
+                //   res.status(200).json({
+                //       status: true,
+                //       response: {messageId : result.id.id, connect : phone ,message:message1  },
+                //   });
+                });
+              }
+        }
+        }catch(error1){
+            console.log('error in : send replay For List Maz ',error1);
+        }
+    }
+}
+
+
+// لعمل القائمة كاملة 
+else if (msg.body === '4' || msg.body === '٤') {
+    let num = msg.body;
+    if (msg.hasQuotedMsg) {  // hasQuotedMsg <-- الرسالة الاساسية التي تم الرد عليها بحرف 4   
+        const quotedMsg = await msg.getQuotedMessage();
+        try{
+            let messageText = quotedMsg.body;
+            if(messageText.includes('(') && messageText.includes(')') && quotedMsg.fromMe){ // And replay for my origin message
+            let contract_id = messageText.split("(")[1];
+            contract_id = contract_id.split(")")[0];
+
+            console.log(messageText);
+            console.log('this contract id is: ',contract_id);
+            //msg.reply('this contract id is: '+ contract_id);
+            let mediaFile = "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/image8-2.jpg?width=595&height=400&name=image8-2.jpg";
+            let phone = msg.from;
+            //let message1 = 'this contract id is: '+ contract_id;
+            let message1 = 'تم اختيار المستند رقم : '+ num + ' ورقم عقدكم هو : '+ contract_id;
+            if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+                let media = await MessageMedia.fromUrl(mediaFile, {unsafeMime : true});
+                // await this_client.sendMessage(phone, media, { caption : message1}).then((result) => {
+                await this_client.sendMessage(phone,message1).then((result) => {
+                    console.log("Replay Sent Contract");
+                //   res.status(200).json({
+                //       status: true,
+                //       response: {messageId : result.id.id, connect : phone ,message:message1  },
+                //   });
+                });
+              }
+        }
+        }catch(error1){
+            console.log('error in : send replay For List Maz ',error1);
+        }
+    }
+}
+});
+// this_client.on('message_create', async (msg) => {
+//     // Fired on all message creations, including your own
+//     // //await wait(5000);
+//     // //msg.delete(false,true);
+//     await wait(15000);
+//     // //await msg.delete(false);
+
+//     //if (msg.fromMe) {
+//         // do stuff here
+//         try{
+//             msg.delete(true);
+//         }catch(error1){
+//             console.log('error in : Delete message',error1);
+//         }
+//         // //setTimeout(msg.delete, 10000,true);
+//     //}
+// });
+
+this_client.on('message_create', async (msg) => {
+
+
+        // try{
+        //     let messageText = msg.body;
+        //     if(messageText.includes('(') && messageText.includes(')')){
+        //     let contract_id = messageText.split("(")[1];
+        //     contract_id = contract_id.split(")")[0];
+
+        //     console.log(messageText);
+        //     console.log('this contract id is: ',contract_id);
+        //     //msg.reply('this contract id is: '+ contract_id);
+        //     let mediaFile = "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/image8-2.jpg?width=595&height=400&name=image8-2.jpg";
+        //     let phone = msg.from;
+        //     let message1 = 'this contract id is: '+ contract_id;
+        //     if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+        //         let media = await MessageMedia.fromUrl(mediaFile, {unsafeMime : true});
+        //         await this_client.sendMessage(phone, media, { caption : message1}).then((result) => {
+        //             console.log("Replay Sent Contract");
+        //         //   res.status(200).json({
+        //         //       status: true,
+        //         //       response: {messageId : result.id.id, connect : phone ,message:message1  },
+        //         //   });
+        //         });
+        //       }
+        // }
+        // }catch(error1){
+        //     console.log('error in : send replay For List Maz ',error1);
+        // }
+
+});
+
+
+this_client.on('message_ack', async(message, ack) => {
+    // هنا يمكنك التحقق من قيمة ack لمعرفة حالة الرسالة
+    await wait (4000);
+    switch (ack) {
+        case 0:
+            console.log(' تم إرسال الرسالة لكن لم يتم استلامها بعد من الخادم',message.id.id);
+            break;
+        case 1:
+            console.log(' تم استلام الرسالة من الخادم',message.id.id);
+            break;
+        case 4:
+            console.log(' تم تشغيل وفتح الملف',message.id.id);
+            break;
+        case 2:
+            console.log(' تم تسليم الرسالة إلى المستلم',message.id.id);
+            update_Message_status_delivered(message.id.id).then(result3 =>{
+                console.log('Saved Recived Message Successfully: ',message.body);
+            }).catch(err=>{
+                console.log("error in save Read Message in DB :",message.id.id);
+            });
+            break;
+        case 3:
+            console.log(' تمت قراءة الرسالة من قبل المستلم',message.id.id);
+            update_Message_status_Read(message.id.id).then(result3 =>{
+                console.log('Saved Read Message Successfully: ',message.body);
+            }).catch(err=>{
+                console.log("error in save Read Message in DB :",message.id.id);
+            });
+            break;
+        default:
+            console.log(' حالة غير معروفة للرسالة',message.id.id);
+        //message.id.id   // message.body  // message.caption  // message.type   // message.t ==  1730035141  // message.timestamp  // message.from  // message.to  = 201112847004@c.us // remove(@c.us) // message.deviceType
+        }
+});
+
 this_client.on('ready', async() => {
     console.log('Client is ready!: ',id);
     let clientInfo = this_client.info;
     console.log(clientInfo);
+    //let session_data1 = stringify(this_client, null, 2);
+    //save_file_Session(session_data1,id);
     get_last_connect_serial(id).then(serial=>{
     insert_connect_New(id,'N',serial).then(result=>{
     update_connect_user_mob(id, clientInfo.pushname, clientInfo.wid.user, clientInfo.platform , clientInfo.isBusiness ,'A').then(result=>{
@@ -427,13 +754,62 @@ this_client.on('error', async (error) => {
 this_client.initialize();
 
 //myList.push(this_client);
-let myid = id.substring(1);
+//let myid = id.substring(1);
+let myid = id
 let numId = Number(myid);
 myList.splice(numId, 0, this_client);
 myindixes.splice(numId, 0, numId);
 
+//console.log(myList);
+console.log(myindixes);
+await wait (3000);
+
+//let session_data = JSON.stringify(this_client);
+//let session_data = stringify(this_client, null, 2);
+//save_file_Session(session_data,id);
+
+//console.log(myindixes.indexOf(numId));
+//////////////
+/////////////
+////////////
+
 }
     
+
+//////////
+//////////
+/////////
+// //const fs = require('fs');
+const filePath = './sessions/data.json';
+
+// كائن JSON الذي نريد حفظه
+const data = {
+    name: "Mazen",
+    age: 30,
+    city: "New York"
+};
+
+// التحقق من وجود الملف، إذا لم يكن موجودًا نقوم بإنشائه
+if (!fs.existsSync(filePath)) {
+    // تحويل JSON إلى string وحفظه في الملف
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    console.log('File created and data saved!');
+} else {
+    console.log('File already exists.');
+}
+
+// استرجاع البيانات من الملف وتحويلها إلى JSON
+const fileContent = fs.readFileSync(filePath, 'utf-8');
+const jsonData = JSON.parse(fileContent);
+
+console.log('Data retrieved from file:', jsonData);
+console.log(jsonData);
+console.log(jsonData.age," ",jsonData.name);
+////////////
+///////////
+///////////
+
+
 getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
     result.forEach(element => {
         console.log("All Ids of ", element.company_id);
@@ -536,7 +912,8 @@ const sendMedia_by_url = async (req,res)=> {
     let id = req.query.id || req.body.id;
     const mediaFile = req.query.mediaFile || req.body.mediaFile;
 
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
@@ -578,7 +955,7 @@ const sendMedia_by_url = async (req,res)=> {
         }            
             
         }else{
-            res.json({status:"false", error:"this phone not registed in whatsapp"});
+            res.json({status:"false", error:"this phone not registered in whatsapp"});
         }
 
         console.log(message);
@@ -653,7 +1030,8 @@ const sendMedia_by_file = async (req,res)=> {
 
     //mediaFile.split(" ").join("");
     console.log(id,phone);
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
@@ -690,6 +1068,7 @@ const sendMedia_by_file = async (req,res)=> {
                 let media = await MessageMedia.fromFilePath('./uploads/'+file_name);
 
               await this_client.sendMessage(phone, media, { caption : message}).then((result) => {
+                fs.unlinkSync('./uploads/'+file_name);
                 res.status(200).json({
                     status: true,
                     response: {messageId : result.id.id, connect : phone ,message:message  },
@@ -744,15 +1123,24 @@ const sendMessage_text = async (req,res)=> {
     
 
     console.log(id,phone);
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
     console.log(numId);
     
+    //let session_data = CircularJSON.stringify(this_client);
+    //load_file_Session(id).then(async this_client1=>{
+    //console.log(this_client1);
+    //let this_client = CircularJSON.parse(session_data);
+
+
     //// let this_client = myList[numId - 1];
-    let this_client = myList[myindixes.indexOf(numId)];
     
+    let this_client = myList[myindixes.indexOf(numId)];
+    //console.log(this_client);
+
     if(apiToken !== Token){
         return res
         .status(401).json({status:"false",error:"This invalid Token"});
@@ -767,9 +1155,10 @@ const sendMessage_text = async (req,res)=> {
             const user = await this_client.isRegisteredUser(phone);
             if(user){
                 await this_client.sendMessage(phone,message).then((result) => {
-                    console.log(result);
-                res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:message  }})
-            });
+                    //console.log(result);
+                    res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:message  }})
+                    //res.json({status:"true", response: {messageId : result.id._serialized, connect : result.from ,message:message  }})
+                });
             
                 
             }else{
@@ -787,9 +1176,126 @@ const sendMessage_text = async (req,res)=> {
         console.log(error);
         res.status(500).json({status:"false",error:"Error Server"});
     }
+//});
 });
 };
 
+
+// // const sendMessage_text = async (req,res)=> {
+    
+// //     req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+// //     res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+    
+
+// //     let body = '';
+// //     // تجميع البيانات المستلمة عبر chunks
+// //     req.on('data', chunk => {
+// //         body += chunk.toString(); // تحويل الـ chunk إلى نص
+// //     });
+
+// //     // بعد استلام جميع البيانات
+// //     req.on('end', async() => {
+// //     // تحليل البيانات المرسلة بتنسيق URL-encoded
+// //     const parsedBody = querystring.parse(body);
+
+// //     // الوصول إلى البيانات من body
+
+// //     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
+// //     let phone =  parsedBody.phone;
+// //     const message =  parsedBody.message;
+// //     let apiToken = parsedBody.apiToken;
+// //     let id =  parsedBody.id;
+
+// //     phone = phone + "@c.us";
+    
+
+// //     console.log(id,phone);
+// //     //let myid = id.substring(1);
+// //     let myid = id;
+// //     let numId = Number(myid);
+// //     console.log(id);
+// //     console.log(myid);
+// //     console.log(numId);
+    
+// //     //let session_data = CircularJSON.stringify(this_client);
+// //     //load_file_Session(id).then(async this_client1=>{
+// //     //console.log(this_client1);
+// //     //let this_client = CircularJSON.parse(session_data);
+
+
+// //     //// let this_client = myList[numId - 1];
+    
+// //     let this_client = myList[myindixes.indexOf(numId)];
+// //     //console.log(this_client);
+
+// //     if(apiToken !== Token){
+// //         return res
+// //         .status(401).json({status:"false",error:"This invalid Token"});
+// //     }
+// //         // انتظر لمدة 7 ثواني (7000 مللي ثانية)
+// //         await wait(7000);  
+// //         console.log('7 seconds later...');
+
+// //     try {
+// //         const result_A = await get_connect_spacific_A_only(id);
+// //         if(result_A !== "NULL"){
+// //             const user = await this_client.isRegisteredUser(phone);
+// //             if(user){
+// //                 ////////
+// //                 ///////////
+// //                 // let sections = [
+// //                 //     {
+// //                 //         title: 'القائمة الرئيسية',
+// //                 //         rows: [
+// //                 //             { id: '1', title: 'الخيار الأول', description: 'وصف الخيار الأول' },
+// //                 //             { id: '2', title: 'الخيار الثاني', description: 'وصف الخيار الثاني' }
+// //                 //         ]
+// //                 //     },
+// //                 //     {
+// //                 //         title: 'قسم آخر',
+// //                 //         rows: [
+// //                 //             { id: '3', title: 'الخيار الثالث', description: 'وصف الخيار الثالث' },
+// //                 //             { id: '4', title: 'الخيار الرابع', description: 'وصف الخيار الرابع' }
+// //                 //         ]
+// //                 //     }
+// //                 // ];
+// //                 let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+// //                 let list = new List('List body', 'btnText', sections, 'Title', 'footer');
+
+// //                 // let list = new List(
+// //                 //     "اختر من القائمة التالية:", // النص الرئيسي
+// //                 //     "عرض الخيارات", // النص في الزر
+// //                 //     sections,
+// //                 //     "عنوان القائمة", // عنوان القائمة
+// //                 //     "ملاحظة أسفل القائمة" // النص أسفل القائمة
+// //                 // );
+// //                 //////
+// //                 /////
+// //                 this_client.sendMessage(phone,list).then((result) => {
+// //                     //console.log(result);
+// //                     res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:list  }})
+// //                     //res.json({status:"true", response: {messageId : result.id._serialized, connect : result.from ,message:message  }})
+// //                 });
+            
+                
+// //             }else{
+// //                 res.json({status:"false", error:"this phone not registed in whatsapp"});
+// //             }
+    
+// //             console.log(message);
+// //             console.log(phone);
+// //         }
+// //         else{
+// //             res.json({status:"false", error:"this Company is Disconnected From whatsapp"});
+// //         }
+        
+// //     } catch (error) {
+// //         console.log(error);
+// //         res.status(500).json({status:"false",error:"Error Server"});
+// //     }
+// // //});
+// // });
+// // };
 
 const test = async (req,res)=> {
 
@@ -845,9 +1351,51 @@ const isClientReady_data = async(req,res) =>{
 };
 
 
+const getThisImage = async(req,res) =>{
+    const id = req.params.id || req.body.id;
+
+    res.setTimeout(45000); // 45000 مللي ثانية (45 ثانية)
+
+    try{
+        let myid = id;
+        let numId = Number(myid);
+        console.log(id);
+        console.log(myid);
+        console.log(numId);
+                
+        let this_client = myList[myindixes.indexOf(numId)];
+            // الحصول على رقم هاتف الحساب المتصل
+        const myNumber = this_client.info.wid._serialized;
+
+        // الحصول على صورة الملف الشخصي
+        const profilePicUrl = await this_client.getProfilePicUrl(myNumber);
+
+        if (profilePicUrl) {
+            console.log('رابط صورة الملف الشخصي:',id," ", profilePicUrl);
+            res.status(200).json({
+                status: true,
+                message: 'you get this Image',
+                image: profilePicUrl
+            });
+        } else {
+            console.log('لا توجد صورة ملف شخصي.');
+        }
+    }catch(error){
+        //console.error('Error:', error);
+        console.log('No Data as : getThisImage :',id); // طباعة قائمة أسماء المنتجات
+        res.status(200).json({
+            status: false,
+            message: 'Error fetching data',
+            error: error.message
+        });
+    };
+};
+
+
 function generateQr(client_id){
         
-    let myid = client_id.substring(1);
+    //let myid = client_id.substring(1);
+    let myid = client_id;
     let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
@@ -939,7 +1487,252 @@ function generateQr(client_id){
         });      
     };
  
+// حذف رسالة لدى الجميع
+async function deleteMessageForEveryone(client_id,phone_id, messageId) {
+        //let myid = client_id.substring(1);
+        let myid = client_id;
+        let numId = Number(myid);
+        console.log(client_id);
+        console.log(myid);
+        console.log(numId);
+        let this_client  ;
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
 
-module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload};
+        return new Promise(async (resolve, reject) => {
+           
+            try {
+                // جلب المحادثة
+                const chat = await this_client.getChatById(phone_id);
+
+                // جلب الرسالة المحددة
+                const messages = await chat.fetchMessages({ limit: 50 });
+                const messageToDelete = messages.find(msg => msg.id.id === messageId);
+                console.log(messages);
+                console.log(messageToDelete);
+                if (messageToDelete) {
+                    // استدعاء دالة حذف الرسالة
+                    this_client.deleteMessage(phone_id, messageId);
+                    console.log('Message deleted for everyone');
+                    resolve("true");
+                }
+                else{
+                    resolve("not true");
+                }
+
+            } catch (error) {
+                console.error('Failed to delete message:', error);
+                reject(error); 
+            }
+    
+       });
+};
+
+// حذف رسالة لدى فقط
+async function deleteMessageForMe(client_id,phone_id, messageId) {
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    let this_client  ;
+    //// this_client = myList[numId - 1];
+    this_client = myList[myindixes.indexOf(numId)];
+    //console.log(this_client);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+        // جلب المحادثة
+        const chat = await this_client.getChatById(phone_id);
+
+        // جلب الرسالة المحددة
+        const messages = await chat.fetchMessages({ limit: 50 });
+        const messageToDelete = messages.find(msg => msg.id.id === messageId);
+        console.log(messages);
+        console.log(messageToDelete);
+        if (messageToDelete) {
+            // استدعاء دالة حذف الرسالة
+            this_client.deleteMessage(phone_id, messageId, { revoke: true });
+            console.log('Message deleted for me');
+            resolve("true");
+        }
+        else{
+            resolve("not true");
+        }
+        } catch (error) {
+            console.error('Failed to delete message:', error);
+            reject(error); 
+        }
+
+    });
+};
+    
+async function checkReciver_isConnected(client_id,phone){
+        
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    return new Promise(async (resolve, reject) => {
+        let this_client  ;
+    
+        try {
+        console.log('checkReciver_isConnected');
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
+       
+        const user = await this_client.isRegisteredUser(phone);
+        if(user){
+            resolve("true");         
+        }else{
+            resolve("Null"); 
+        }
+
+        } catch (error) {
+            console.log(error);
+            reject(error); 
+        }
+
+   });
+};
+
+    const deleteMessage= async(req,res) =>{
+        //console.log(client.info);
+        let id = req.query.id || req.body.id;
+        let phone = req.query.phone || req.body.phone;
+        let messageID = req.query.messageID || req.body.messageID;
+        let forMe = req.query.forMe || req.body.forMe;
+
+        phone = phone + "@c.us";
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+        if(forMe===1 || forMe =="1"){
+            deleteMessageForMe(id,phone,messageID)
+            .then((result)=>{
+                if(result == "true"){
+                    res.status(200).json({status:"true", response: {message : "this message is deleted from whatsapp successfully"  }})
+                }
+                else{
+                    res.status(200).json({status:"false", error:"this message is not found in whatsapp"});
+                }
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('deleteMessageForMe : Server Error'); 
+                res.status(200).json({
+                    status: false,
+                    message: 'deleteMessageForMe : Server Error',
+                    error: error.message
+                });
+            }); 
+        }
+        else{
+            deleteMessageForEveryone(id,phone,messageID)
+            .then((result)=>{
+                if(result == "true"){
+                    res.status(200).json({status:"true", response: {message : "this message is deleted from whatsapp successfully"  }})
+                }
+                else{
+                    res.status(200).json({status:"false", error:"this message is not found in whatsapp"});
+                }
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('deleteMessageForEveryone : Server Error'); 
+                res.status(200).json({
+                    status: false,
+                    message: 'deleteMessageForEveryone : Server Error',
+                    error: error.message
+                });
+            }); 
+        }   
+    };
+
+    const checkReciver = async(req,res) =>{
+        //console.log(client.info);
+        let id = req.query.id || req.body.id;
+        let phone = req.query.phone || req.body.phone;
+
+        phone = phone + "@c.us";
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+
+        checkReciver_isConnected(id,phone)
+        .then((result)=>{
+            if(result == "true"){
+                res.status(200).json({status:"true", response: {message : "this phone is registered in whatsapp"  }})
+            }
+            else{
+                res.status(200).json({status:"false", error:"this phone not registered in whatsapp"});
+            }
+        })
+        .catch((error) => {
+            //console.error('Error:', error);
+            console.log('checkReciver : Server Error'); 
+            res.status(200).json({
+                status: false,
+                message: 'checkReciver : Server Error',
+                error: error.message
+            });
+        });      
+    };
+
+    
+function make_logout(client_id){
+        
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    return new Promise(async(resolve, reject) => {
+        let this_client  ;
+        console.log('No session in qr');
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
+       
+        try {
+            await this_client.logout();
+            //await wait(20000);
+            resolve("Done");
+
+        } catch (error) {
+            console.log(error);
+            reject(error); 
+        }
+});
+};
+
+    const logout_whats = async(req,res,next) =>{
+        //console.log(client.info);
+        const id = req.params.id || req.body.id;
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+
+        make_logout(id)
+        .then((result)=>{
+            console.log('logout successfully: ',id); 
+            res.status(200).json({
+                status: true,
+                message: 'logout successfully',
+        });
+        })
+        .catch((error) => {
+            //console.error('Error:', error);
+            console.log('Error : logout not Done: ',id); 
+            res.status(200).json({
+                status: false,
+                message: 'Error : logout not Done',
+                error: error.message
+            });
+        });      
+    }
+
+
+module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage};
 
 
