@@ -1,8 +1,6 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
-const List  = require('./List.js');
-
 //const { Client,LocalAuth,MessageMedia,List,Buttons,Contact,ClientInfo,Message,Chat,version } = require('../src.js');
 
 //////

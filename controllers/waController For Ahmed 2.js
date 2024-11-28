@@ -1,8 +1,6 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
-const List  = require('./List.js');
-
 
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
