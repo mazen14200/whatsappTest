@@ -1,23 +1,20 @@
 
 const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
-//const puppeteer = require('puppeteer');
+
+const List  = require('./List.js');
+
+
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const multer = require('multer');
 const body = require('body-parser');
+const querystring = require('querystring');
 
 const path = require('path');
-const { saveSession, loadSession, removeSession } = require('./session'); // استيراد وظائف الجلسة
-
-//const qrcode = require('qrcode-terminal');
-
-// تحديد مسار المجلد
-//const authDir = path.join(__dirname, '../.wwebjs_auth');
-const authDir = path.join(__dirname, '../sessions');
-const chromepath = path.join(__dirname, '../chrome/win64-127.0.6533.88/chrome-win64/chrome.exe');
+const { removeSession} = require('./session.js'); // استيراد وظائف الجلسة
 
 
-//const {connection ,get_connect_Data , update_connect_user_mob ,insert_connect_user_mob ,insert_connect } = require('./dbContext');
+
+
 
 
 
@@ -83,7 +80,7 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
             let connect_status ='D';
             console.log("my id is :",connect_id);
             //let query1 = "SELECT MAX(connect_LogOut_Datetime) AS Max_Logout ,connect_id,connect_serial FROM connect where connect_id ='"+connect_id+"' AND connect_status ='D' GROUP BY connect_id,connect_serial";
-            let query1 = "SELECT MAX(connect_serial) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id,connect_serial";
+            let query1 = "SELECT MAX(connect_serial) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id";
             const results = await request.query(query1);
             if(results.recordset[0] === undefined){
                 console.log("get_last_connect_serial : NULL");
@@ -217,6 +214,47 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
         });
     }
 
+    async function update_Message_status_delivered(message_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let connect_status = 'D';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let delivered_Datetime = local_currentTime;
+            let query1 = "UPDATE Message SET Message_Status = '2',Message_Received_DateTime= '"+delivered_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Received_DateTime IS NULL";
+            const results = await request.query(query1);
+            resolve(results);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
+    
+    async function update_Message_status_Read(message_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let connect_status = 'D';
+            let tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+            let local_currentTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            let readed_Datetime = local_currentTime;
+            let query1 = "UPDATE Message SET Message_Status = '3',Message_Read_DateTime= '"+readed_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Read_DateTime IS NULL; UPDATE Message SET Message_Received_DateTime= '"+readed_Datetime+"' WHERE Message_Id = '"+message_id+"' AND Message_Received_DateTime IS NULL";
+            const results = await request.query(query1);
+            resolve(results);
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+    }
+
     async function update_connect_disconnected(connect_id) {
         return new Promise(async function(resolve, reject){
         try{
@@ -333,8 +371,6 @@ getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
     console.log("All Ids of All_Setup_Ids", result);
 });
 
-//module.exports ={connection ,get_connect_Data , update_connect_user_mob ,insert_connect_user_mob ,insert_connect };
-
 
 
 var myList = new Array();
@@ -345,7 +381,8 @@ async function setAllsessions_Initializing(id,time){
     if(time==="2"){
         console.log("wait 20 seconds");
         await wait(20000);
-        let myid = id.substring(1);
+        //let myid = id.substring(1);
+        let myid = id;
         let numId = Number(myid);
         //to remove from List and indexies
         let index_to_remove= myindixes.indexOf(numId);
@@ -371,6 +408,69 @@ async function setAllsessions_Initializing(id,time){
         ignoreHTTPSErrors: true, // تجاهل أخطاء SSL
         }
 });       
+
+this_client.on('message', async msg => {
+    console.log('MESSAGE RECEIVED', msg);
+
+    if (msg.body === '!ping reply') {
+        // Send a new message as a reply to the current one
+        msg.reply('pong');
+
+    } else if (msg.body === '!ping') {
+        // Send a new message to the same chat
+        this_client.sendMessage(msg.from, 'pong');
+
+    } 
+    else if (msg.body === 'mm') {
+        // Send a new message to the same chat
+        msg.delete(true);
+    } 
+else if (msg.body === '!delete') {
+    if (msg.hasQuotedMsg) {  // hasQuotedMsg الرسالة التي تم الرد عليها بكلمة !delete
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.fromMe) {
+            quotedMsg.delete(true);
+        } else {
+            msg.reply('I can only delete my own messages');
+        }
+    }
+}});
+
+
+this_client.on('message_ack', async(message, ack) => {
+    // هنا يمكنك التحقق من قيمة ack لمعرفة حالة الرسالة
+    await wait (4000);
+    switch (ack) {
+        case 0:
+            console.log(' تم إرسال الرسالة لكن لم يتم استلامها بعد من الخادم',message.id.id);
+            break;
+        case 1:
+            console.log(' تم استلام الرسالة من الخادم',message.id.id);
+            break;
+        case 4:
+            console.log(' تم تشغيل وفتح الملف',message.id.id);
+            break;
+        case 2:
+            console.log(' تم تسليم الرسالة إلى المستلم',message.id.id);
+            update_Message_status_delivered(message.id.id).then(result3 =>{
+                console.log('Saved Recived Message Successfully: ',message.body);
+            }).catch(err=>{
+                console.log("error in save Read Message in DB :",message.id.id);
+            });
+            break;
+        case 3:
+            console.log(' تمت قراءة الرسالة من قبل المستلم',message.id.id);
+            update_Message_status_Read(message.id.id).then(result3 =>{
+                console.log('Saved Read Message Successfully: ',message.body);
+            }).catch(err=>{
+                console.log("error in save Read Message in DB :",message.id.id);
+            });
+            break;
+        default:
+            console.log(' حالة غير معروفة للرسالة',message.id.id);
+        //message.id.id   // message.body  // message.caption  // message.type   // message.t ==  1730035141  // message.timestamp  // message.from  // message.to  = 201112847004@c.us // remove(@c.us) // message.deviceType
+        }
+});
 
 this_client.on('ready', async() => {
     console.log('Client is ready!: ',id);
@@ -425,14 +525,17 @@ this_client.on('error', async (error) => {
 
 this_client.initialize();
 
-//myList.push(this_client);
-let myid = id.substring(1);
+
+let myid = id
 let numId = Number(myid);
 myList.splice(numId, 0, this_client);
 myindixes.splice(numId, 0, numId);
 
+console.log(myindixes);
+await wait (3000);
+
 }
-    
+
 getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
     result.forEach(element => {
         console.log("All Ids of ", element.company_id);
@@ -440,87 +543,6 @@ getListOfStringsFrom_All_Setup_Ids_DB().then(result =>{
         setAllsessions_Initializing(element.company_id.toString(),"0");
     });
 });
-
-// مفتاح سري لتوقيع الـ JWT
-const SECRET_KEY = 'your-secret-key';
-
-
-
-// // client.on('message', msg => {
-// //     if (msg.body === '!ping') {
-// //         //msg.reply('pong');
-// //         client.sendMessage(msg.from ,'pong');
-// //     }
-// // });
-
-// // الاستماع للرسائل الواردة والرد عليها تلقائيًا
-// client.on('message', message => {
-//     console.log(`Received message: ${message.body}`);
-//     console.log(`Received message ID: ${message.id.id}`);
-//     console.log(`Received message From: ${message.from}`);
-//     console.log(`Received message To: ${message.to}`);
-//     console.log(`Received message time: ${message.timestamp}`);
-
-    
-//     // الرد برسالة تلقائية
-//     if (message.body.toLowerCase() === 'hello') {
-//         message.reply('Hello! How can I assist you today?');
-//     } 
-//     // else {
-//     //     message.reply('This is an automated response.');
-//     // }
-// });
-
-// client.on('message', message => {
-//     if (message.body.toLowerCase().includes('help')) {
-//         message.reply('How can I assist you?');
-//     } else if (message.body.includes('bye')) {
-//         message.reply('Goodbye!');
-//     } 
-//     // else {
-//     //     message.reply('I did not understand your message.');
-//     // }
-// });
-
-
-
-
-// // إنشاء أو تحميل عميل WhatsApp
-// function createClient(id) {
-//     let client;
-//     if (sessions[id]) {
-//         client = new Client({ session: sessions[id] });
-//     } else {
-//         client = new Client();
-//         client.on('qr', qr => {
-//             console.log(`QR for client ${id}: ${qr}`);
-//         });
-//         client.on('authenticated', (session) => {
-//             sessions[id] = session;
-//             fs.writeFileSync('session.json', JSON.stringify(sessions));
-//         });
-//     }
-    
-//     client.initialize();
-//     return client;
-// }
-
-
-/*router.get('/', async (req, res) => {
-    try {
-        const client = new Client(...)
-        let qr = await new Promise((resolve, reject) => {
-            client.once('qr', (qr) => resolve(qr))
-            setTimeout(() => {
-                reject(new Error("QR event wasn't emitted in 15 seconds."))
-            }, 15000)
-        })
-        res.send(qr)
-    } catch (err) {
-        res.send(err.message)
-    }
-}*/
-
 
 
 const sendMedia_by_url = async (req,res)=> {
@@ -535,7 +557,8 @@ const sendMedia_by_url = async (req,res)=> {
     let id = req.query.id || req.body.id;
     const mediaFile = req.query.mediaFile || req.body.mediaFile;
 
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
@@ -577,7 +600,7 @@ const sendMedia_by_url = async (req,res)=> {
         }            
             
         }else{
-            res.json({status:"false", error:"this phone not registed in whatsapp"});
+            res.json({status:"false", error:"this phone not registered in whatsapp"});
         }
 
         console.log(message);
@@ -609,7 +632,6 @@ const sendMedia_by_url = async (req,res)=> {
       return res.status(400).send('No text provided.');
     }
   
-    // هنا يمكنك القيام بأي شيء بالملف والنص، مثل تخزينهما في قاعدة البيانات
     res.status(200).json({
       message: 'File and text uploaded successfully!',
       file: file,
@@ -620,18 +642,40 @@ const sendMedia_by_url = async (req,res)=> {
 
 const sendMedia_by_file = async (req,res)=> {
         
-    req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
-    res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+    //req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    //res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+
+    let body = '';
+    // تجميع البيانات المستلمة عبر chunks
+    req.on('data', chunk => {
+        body += chunk.toString(); // تحويل الـ chunk إلى نص
+    });
+
+    // بعد استلام جميع البيانات
+    req.on('end', async() => {
+        console.log(body);
+    //// تحليل البيانات المرسلة بتنسيق URL-encoded
+    //const decodedQuery = decodeURIComponent(body);
+    const parsedBody = querystring.parse(body);
+    //const params = new URLSearchParams(query);
+    //const parsedBody = new URLSearchParams(body);
+
+    // الوصول إلى البيانات من body
 
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
-    let phone =  req.params.phone ||req.query.phone || req.body.phone;
-    const message =  req.params.message ||req.query.message || req.body.message;
-    let apiToken =  req.params.apiToken ||req.query.apiToken || req.body.apiToken;
-    let id =  req.params.id ||req.query.id || req.body.id;
-    //const mediaFile =  req.params.mediaFile ||req.query.mediaFile || req.body.mediaFile;
-    const mediaFile ="hg";
+    let phone =  parsedBody.phone;
+    const message =  parsedBody.message;
+    let apiToken = parsedBody.apiToken;
+    let id =  parsedBody.id;
+    const file_name =  parsedBody.file_name;
+    const mediaFile22 =  parsedBody.mediaFile;
+    let mediaFile = "h";
+    mediaFile = body.split("&mediaFile=").pop();
+
+    //mediaFile.split(" ").join("");
     console.log(id,phone);
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
@@ -639,6 +683,8 @@ const sendMedia_by_file = async (req,res)=> {
     
     //// let this_client = myList[numId - 1];
     let this_client = myList[myindixes.indexOf(numId)];
+
+    console.log(mediaFile);
 
     phone = phone + "@c.us";
     
@@ -657,13 +703,16 @@ const sendMedia_by_file = async (req,res)=> {
         const user = await this_client.isRegisteredUser(phone);
         if(user){
 
-            //if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
+            if(mediaFile !== undefined && mediaFile !== null && mediaFile !== ""){
                 //let media = MessageMedia.fromFilePath('./path_to_file/image.jpg');
-            if(mediaFile){
-              //let media = await MessageMedia.fromFilePath(mediaFile);
-              let media = mediaFile;
+                //fs.writeFileSync('foo.png',mediaFile,'base64');
+                fs.writeFileSync('./uploads/'+file_name,mediaFile,'base64');
+                
+                //let media = await MessageMedia.fromFilePath("foo.png");
+                let media = await MessageMedia.fromFilePath('./uploads/'+file_name);
 
               await this_client.sendMessage(phone, media, { caption : message}).then((result) => {
+                fs.unlinkSync('./uploads/'+file_name);
                 res.status(200).json({
                     status: true,
                     response: {messageId : result.id.id, connect : phone ,message:message  },
@@ -686,7 +735,7 @@ const sendMedia_by_file = async (req,res)=> {
         console.log(error);
         res.status(500).json({status:"false",error:"Error Server"});
     }
-    
+});   
 };
 
 const sendMessage_text = async (req,res)=> {
@@ -694,25 +743,41 @@ const sendMessage_text = async (req,res)=> {
     req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
     res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
     
+
+    let body = '';
+    // تجميع البيانات المستلمة عبر chunks
+    req.on('data', chunk => {
+        body += chunk.toString(); // تحويل الـ chunk إلى نص
+    });
+
+    // بعد استلام جميع البيانات
+    req.on('end', async() => {
+    // تحليل البيانات المرسلة بتنسيق URL-encoded
+    const parsedBody = querystring.parse(body);
+
+    // الوصول إلى البيانات من body
+
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
-    let phone =  req.body.phone;
-    const message =  req.body.message;
-    let apiToken =  req.body.apiToken;
-    let id =  req.body.id;
+    let phone =  parsedBody.phone;
+    const message =  parsedBody.message;
+    let apiToken = parsedBody.apiToken;
+    let id =  parsedBody.id;
 
     phone = phone + "@c.us";
     
 
     console.log(id,phone);
-    let myid = id.substring(1);
+    //let myid = id.substring(1);
+    let myid = id;
     let numId = Number(myid);
     console.log(id);
     console.log(myid);
     console.log(numId);
     
-    //// let this_client = myList[numId - 1];
-    let this_client = myList[myindixes.indexOf(numId)];
     
+    let this_client = myList[myindixes.indexOf(numId)];
+    //console.log(this_client);
+
     if(apiToken !== Token){
         return res
         .status(401).json({status:"false",error:"This invalid Token"});
@@ -727,9 +792,10 @@ const sendMessage_text = async (req,res)=> {
             const user = await this_client.isRegisteredUser(phone);
             if(user){
                 await this_client.sendMessage(phone,message).then((result) => {
-                    console.log(result);
-                res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:message  }})
-            });
+                    //console.log(result);
+                    res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:message  }})
+                    //res.json({status:"true", response: {messageId : result.id._serialized, connect : result.from ,message:message  }})
+                });
             
                 
             }else{
@@ -747,8 +813,10 @@ const sendMessage_text = async (req,res)=> {
         console.log(error);
         res.status(500).json({status:"false",error:"Error Server"});
     }
-    
+//});
+});
 };
+
 
 
 const test = async (req,res)=> {
@@ -771,10 +839,7 @@ const test = async (req,res)=> {
 
 
 const isClientReady_data = async(req,res) =>{
-    //console.log(client.info);
-
     const id = req.params.id || req.body.id;
-    //client.removeAllListeners('qr'); // إزالة جميع المستمعين للحدث 'qr'
 
     //req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
     res.setTimeout(45000); // 45000 مللي ثانية (45 ثانية)
@@ -805,9 +870,51 @@ const isClientReady_data = async(req,res) =>{
 };
 
 
+const getThisImage = async(req,res) =>{
+    const id = req.params.id || req.body.id;
+
+    res.setTimeout(45000); // 45000 مللي ثانية (45 ثانية)
+
+    try{
+        let myid = id;
+        let numId = Number(myid);
+        console.log(id);
+        console.log(myid);
+        console.log(numId);
+                
+        let this_client = myList[myindixes.indexOf(numId)];
+            // الحصول على رقم هاتف الحساب المتصل
+        const myNumber = this_client.info.wid._serialized;
+
+        // الحصول على صورة الملف الشخصي
+        const profilePicUrl = await this_client.getProfilePicUrl(myNumber);
+
+        if (profilePicUrl) {
+            console.log('رابط صورة الملف الشخصي:',id," ", profilePicUrl);
+            res.status(200).json({
+                status: true,
+                message: 'you get this Image',
+                image: profilePicUrl
+            });
+        } else {
+            console.log('لا توجد صورة ملف شخصي.');
+        }
+    }catch(error){
+        //console.error('Error:', error);
+        console.log('No Data as : getThisImage :',id); // طباعة قائمة أسماء المنتجات
+        res.status(200).json({
+            status: false,
+            message: 'Error fetching data',
+            error: error.message
+        });
+    };
+};
+
+
 function generateQr(client_id){
         
-    let myid = client_id.substring(1);
+    //let myid = client_id.substring(1);
+    let myid = client_id;
     let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
@@ -899,7 +1006,252 @@ function generateQr(client_id){
         });      
     };
  
+// حذف رسالة لدى الجميع
+async function deleteMessageForEveryone(client_id,phone_id, messageId) {
+        //let myid = client_id.substring(1);
+        let myid = client_id;
+        let numId = Number(myid);
+        console.log(client_id);
+        console.log(myid);
+        console.log(numId);
+        let this_client  ;
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
 
-module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload};
+        return new Promise(async (resolve, reject) => {
+           
+            try {
+                // جلب المحادثة
+                const chat = await this_client.getChatById(phone_id);
+
+                // جلب الرسالة المحددة
+                const messages = await chat.fetchMessages({ limit: 50 });
+                const messageToDelete = messages.find(msg => msg.id.id === messageId);
+                console.log(messages);
+                console.log(messageToDelete);
+                if (messageToDelete) {
+                    // استدعاء دالة حذف الرسالة
+                    this_client.deleteMessage(phone_id, messageId);
+                    console.log('Message deleted for everyone');
+                    resolve("true");
+                }
+                else{
+                    resolve("not true");
+                }
+
+            } catch (error) {
+                console.error('Failed to delete message:', error);
+                reject(error); 
+            }
+    
+       });
+};
+
+// حذف رسالة لدى فقط
+async function deleteMessageForMe(client_id,phone_id, messageId) {
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    let this_client  ;
+    //// this_client = myList[numId - 1];
+    this_client = myList[myindixes.indexOf(numId)];
+    //console.log(this_client);
+
+    return new Promise(async (resolve, reject) => {
+        try {
+        // جلب المحادثة
+        const chat = await this_client.getChatById(phone_id);
+
+        // جلب الرسالة المحددة
+        const messages = await chat.fetchMessages({ limit: 50 });
+        const messageToDelete = messages.find(msg => msg.id.id === messageId);
+        console.log(messages);
+        console.log(messageToDelete);
+        if (messageToDelete) {
+            // استدعاء دالة حذف الرسالة
+            this_client.deleteMessage(phone_id, messageId, { revoke: true });
+            console.log('Message deleted for me');
+            resolve("true");
+        }
+        else{
+            resolve("not true");
+        }
+        } catch (error) {
+            console.error('Failed to delete message:', error);
+            reject(error); 
+        }
+
+    });
+};
+    
+async function checkReciver_isConnected(client_id,phone){
+        
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    return new Promise(async (resolve, reject) => {
+        let this_client  ;
+    
+        try {
+        console.log('checkReciver_isConnected');
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
+       
+        const user = await this_client.isRegisteredUser(phone);
+        if(user){
+            resolve("true");         
+        }else{
+            resolve("Null"); 
+        }
+
+        } catch (error) {
+            console.log(error);
+            reject(error); 
+        }
+
+   });
+};
+
+    const deleteMessage= async(req,res) =>{
+        //console.log(client.info);
+        let id = req.query.id || req.body.id;
+        let phone = req.query.phone || req.body.phone;
+        let messageID = req.query.messageID || req.body.messageID;
+        let forMe = req.query.forMe || req.body.forMe;
+
+        phone = phone + "@c.us";
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+        if(forMe===1 || forMe =="1"){
+            deleteMessageForMe(id,phone,messageID)
+            .then((result)=>{
+                if(result == "true"){
+                    res.status(200).json({status:"true", response: {message : "this message is deleted from whatsapp successfully"  }})
+                }
+                else{
+                    res.status(200).json({status:"false", error:"this message is not found in whatsapp"});
+                }
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('deleteMessageForMe : Server Error'); 
+                res.status(200).json({
+                    status: false,
+                    message: 'deleteMessageForMe : Server Error',
+                    error: error.message
+                });
+            }); 
+        }
+        else{
+            deleteMessageForEveryone(id,phone,messageID)
+            .then((result)=>{
+                if(result == "true"){
+                    res.status(200).json({status:"true", response: {message : "this message is deleted from whatsapp successfully"  }})
+                }
+                else{
+                    res.status(200).json({status:"false", error:"this message is not found in whatsapp"});
+                }
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('deleteMessageForEveryone : Server Error'); 
+                res.status(200).json({
+                    status: false,
+                    message: 'deleteMessageForEveryone : Server Error',
+                    error: error.message
+                });
+            }); 
+        }   
+    };
+
+    const checkReciver = async(req,res) =>{
+        //console.log(client.info);
+        let id = req.query.id || req.body.id;
+        let phone = req.query.phone || req.body.phone;
+
+        phone = phone + "@c.us";
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+
+        checkReciver_isConnected(id,phone)
+        .then((result)=>{
+            if(result == "true"){
+                res.status(200).json({status:"true", response: {message : "this phone is registered in whatsapp"  }})
+            }
+            else{
+                res.status(200).json({status:"false", error:"this phone not registered in whatsapp"});
+            }
+        })
+        .catch((error) => {
+            //console.error('Error:', error);
+            console.log('checkReciver : Server Error'); 
+            res.status(200).json({
+                status: false,
+                message: 'checkReciver : Server Error',
+                error: error.message
+            });
+        });      
+    };
+
+    
+function make_logout(client_id){
+        
+    //let myid = client_id.substring(1);
+    let myid = client_id;
+    let numId = Number(myid);
+    console.log(client_id);
+    console.log(myid);
+    console.log(numId);
+    return new Promise(async(resolve, reject) => {
+        let this_client  ;
+        console.log('No session in qr');
+        //// this_client = myList[numId - 1];
+        this_client = myList[myindixes.indexOf(numId)];
+       
+        try {
+            await this_client.logout();
+            //await wait(20000);
+            resolve("Done");
+
+        } catch (error) {
+            console.log(error);
+            reject(error); 
+        }
+});
+};
+
+    const logout_whats = async(req,res,next) =>{
+        //console.log(client.info);
+        const id = req.params.id || req.body.id;
+
+        res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+
+        make_logout(id)
+        .then((result)=>{
+            console.log('logout successfully: ',id); 
+            res.status(200).json({
+                status: true,
+                message: 'logout successfully',
+        });
+        })
+        .catch((error) => {
+            //console.error('Error:', error);
+            console.log('Error : logout not Done: ',id); 
+            res.status(200).json({
+                status: false,
+                message: 'Error : logout not Done',
+                error: error.message
+            });
+        });      
+    }
+
+
+module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage};
 
 

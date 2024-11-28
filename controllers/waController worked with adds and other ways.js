@@ -3,7 +3,14 @@ const { Client,LocalAuth,MessageMedia } = require('whatsapp-web.js');
 
 const List  = require('./List.js');
 
+//const { Client,LocalAuth,MessageMedia,List,Buttons,Contact,ClientInfo,Message,Chat,version } = require('../src.js');
 
+//////
+//////////
+///////
+//////////
+
+//const puppeteer = require('puppeteer');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const multer = require('multer');
@@ -12,8 +19,9 @@ const querystring = require('querystring');
 const { stringify, parse } = require('flatted');
 
 const path = require('path');
-const { removeSession} = require('./session'); // استيراد وظائف الجلسة
+const { removeSession ,save_file_Session,load_file_Session,remove_file_Session} = require('./session.js'); // استيراد وظائف الجلسة
 
+//const qrcode = require('qrcode-terminal');
 
 // تحديد مسار المجلد
 //const authDir = path.join(__dirname, '../.wwebjs_auth');
