@@ -1,6 +1,6 @@
 const express = require("express");
 
-const {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage} = require("../controllers/waController");
+const {sendMedia_by_url,sendMedia_by_file,sendMessage_text,sendMessage_text_s,test,isClientReady_data,generateQrCodeNew2,addNew_Device,checkisClientInitialized,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage} = require("../controllers/waController");
 
 const router = express.Router();
 
@@ -50,6 +50,9 @@ router.get("/api/isClientReady_data/:id", isClientReady_data);
 router.post("/api/isClientReady_data/:id", isClientReady_data);
 router.get("/api/logout_whats/:id", logout_whats);
 router.post("/api/logout_whats/:id", logout_whats);
+router.get("/api/checkisClientInitialized/:id", checkisClientInitialized);
+router.post("/api/checkisClientInitialized/:id", checkisClientInitialized);
+
 router.get("/api/getThisImage/:id", getThisImage);
 router.post("/api/getThisImage/:id", getThisImage);
 router.get("/api/test", test);
@@ -59,4 +62,6 @@ router.get("/api/sendMedia_by_url", sendMedia_by_url);
 router.post("/api/sendMedia_by_url", sendMedia_by_url);
 router.get("/api/sendMessage_text", sendMessage_text);
 router.post("/api/sendMessage_text", sendMessage_text);
+router.get("/api/sendMessage_text_s", sendMessage_text_s);
+router.post("/api/sendMessage_text_s", sendMessage_text_s);
 module.exports = router;

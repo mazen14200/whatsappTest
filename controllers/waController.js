@@ -15,6 +15,7 @@ const { removeSession} = require('./session'); // استيراد وظائف ال
 
 // تحديد مسار المجلد
 //const authDir = path.join(__dirname, '../.wwebjs_auth');
+const wwebjs_authDir = path.join(__dirname, '../.wwebjs_auth');
 const authDir = path.join(__dirname, '../sessions');
 const chromepath = path.join(__dirname, '../chrome/win64-127.0.6533.88/chrome-win64/chrome.exe');
 
@@ -85,7 +86,7 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
             let connect_status ='D';
             console.log("my id is :",connect_id);
             //let query1 = "SELECT MAX(connect_LogOut_Datetime) AS Max_Logout ,connect_id,connect_serial FROM connect where connect_id ='"+connect_id+"' AND connect_status ='D' GROUP BY connect_id,connect_serial";
-            let query1 = "SELECT MAX(connect_serial) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id";
+            let query1 = "SELECT MAX(CAST(connect_serial AS INT)) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id";
             const results = await request.query(query1);
             if(results.recordset[0] === undefined){
                 console.log("get_last_connect_serial : NULL");
@@ -390,9 +391,9 @@ async function setAllsessions_Initializing(id,time){
         await wait(20000);
         //let myid = id.substring(1);
         let myid = id;
-        let numId = Number(myid);
+        //let numId = Number(myid);
         //to remove from List and indexies
-        let index_to_remove= myindixes.indexOf(numId);
+        let index_to_remove= myindixes.indexOf(myid);
         myList.splice(index_to_remove, 1);
         myindixes.splice(index_to_remove, 1);
         console.log("i finished waited 20 seconds");
@@ -746,9 +747,9 @@ this_client.initialize();
 //myList.push(this_client);
 //let myid = id.substring(1);
 let myid = id
-let numId = Number(myid);
-myList.splice(numId, 0, this_client);
-myindixes.splice(numId, 0, numId);
+//let numId = Number(myid);
+myList.splice(0, 0, this_client);
+myindixes.splice(0, 0, myid);
 
 //console.log(myList);
 console.log(myindixes);
@@ -896,6 +897,15 @@ const sendMedia_by_url = async (req,res)=> {
     res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
 
     const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
+    try{
+        let phone2 = req.query.phone || req.body.phone;
+        const message2 = req.query.message || req.body.message;
+        let apiToken2 = req.query.apiToken || req.body.apiToken;
+        let id2 = req.query.id || req.body.id;
+        const mediaFile2 = req.query.mediaFile || req.body.mediaFile;
+    }catch(error){
+        return res.status(400).json({ status:false ,message: "Missing required data: phone or message or apiToken or id or mediaFile" });
+    }
     let phone = req.query.phone || req.body.phone;
     const message = req.query.message || req.body.message;
     let apiToken = req.query.apiToken || req.body.apiToken;
@@ -904,13 +914,13 @@ const sendMedia_by_url = async (req,res)=> {
 
     //let myid = id.substring(1);
     let myid = id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     
     //// let this_client = myList[numId - 1];
-    let this_client = myList[myindixes.indexOf(numId)];
+    let this_client = myList[myindixes.indexOf(myid)];
 
     phone = phone + "@c.us";
     
@@ -1022,13 +1032,13 @@ const sendMedia_by_file = async (req,res)=> {
     console.log(id,phone);
     //let myid = id.substring(1);
     let myid = id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     
     //// let this_client = myList[numId - 1];
-    let this_client = myList[myindixes.indexOf(numId)];
+    let this_client = myList[myindixes.indexOf(myid)];
 
     console.log(mediaFile);
 
@@ -1115,10 +1125,10 @@ const sendMessage_text = async (req,res)=> {
     console.log(id,phone);
     //let myid = id.substring(1);
     let myid = id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     
     //let session_data = CircularJSON.stringify(this_client);
     //load_file_Session(id).then(async this_client1=>{
@@ -1128,7 +1138,7 @@ const sendMessage_text = async (req,res)=> {
 
     //// let this_client = myList[numId - 1];
     
-    let this_client = myList[myindixes.indexOf(numId)];
+    let this_client = myList[myindixes.indexOf(myid)];
     //console.log(this_client);
 
     if(apiToken !== Token){
@@ -1170,6 +1180,77 @@ const sendMessage_text = async (req,res)=> {
 });
 };
 
+const sendMessage_text_s = async (req,res)=> {
+    
+    req.setTimeout(10000); // 10000 مللي ثانية (10 ثانية)
+    res.setTimeout(22000); // 22000 مللي ثانية (22 ثانية)
+    
+
+    const Token = "Bnan_fgfghgfhnbbbmhhjhgmghhgghhgj";
+    let phone =  req.query.phone || req.body.phone;
+    const message =  req.query.message || req.body.message;
+    let apiToken = req.query.apiToken || req.body.apiToken;
+    let id =  req.query.id || req.body.id;
+
+    phone = phone + "@c.us";
+    
+
+    console.log(id,phone);
+    //let myid = id.substring(1);
+    let myid = id;
+    //let numId = Number(myid);
+    console.log(id);
+    console.log(myid);
+    //console.log(numId);
+    
+    //let session_data = CircularJSON.stringify(this_client);
+    //load_file_Session(id).then(async this_client1=>{
+    //console.log(this_client1);
+    //let this_client = CircularJSON.parse(session_data);
+
+
+    //// let this_client = myList[numId - 1];
+    
+    let this_client = myList[myindixes.indexOf(myid)];
+    //console.log(this_client);
+
+    if(apiToken !== Token){
+        return res
+        .status(401).json({status:"false",error:"This invalid Token"});
+    }
+        // انتظر لمدة 7 ثواني (7000 مللي ثانية)
+        await wait(7000);  
+        console.log('7 seconds later...');
+
+    try {
+        const result_A = await get_connect_spacific_A_only(id);
+        if(result_A !== "NULL"){
+            const user = await this_client.isRegisteredUser(phone);
+            if(user){
+                await this_client.sendMessage(phone,message).then((result) => {
+                    //console.log(result);
+                    res.json({status:"true", response: {messageId : result.id.id, connect : phone ,message:message  }})
+                    //res.json({status:"true", response: {messageId : result.id._serialized, connect : result.from ,message:message  }})
+                });
+            
+                
+            }else{
+                res.json({status:"false", error:"this phone not registed in whatsapp"});
+            }
+    
+            console.log(message);
+            console.log(phone);
+        }
+        else{
+            res.json({status:"false", error:"this Company is Disconnected From whatsapp"});
+        }
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({status:"false",error:"Error Server"});
+    }
+//});
+};
 
 // // const sendMessage_text = async (req,res)=> {
     
@@ -1308,7 +1389,11 @@ const test = async (req,res)=> {
 
 const isClientReady_data = async(req,res) =>{
     //console.log(client.info);
-
+    try{
+        const id2 = req.params.id || req.body.id;
+    }catch(error){
+        return res.status(400).json({ status:false ,message: "Missing required data: id" });
+    }
     const id = req.params.id || req.body.id;
     //client.removeAllListeners('qr'); // إزالة جميع المستمعين للحدث 'qr'
 
@@ -1342,18 +1427,23 @@ const isClientReady_data = async(req,res) =>{
 
 
 const getThisImage = async(req,res) =>{
+    try{
+        let id2 = req.params.id || req.body.id;
+    }catch(error){
+        return res.status(400).json({ status:false ,message: "Missing required data: id" });
+    }
     const id = req.params.id || req.body.id;
 
     res.setTimeout(45000); // 45000 مللي ثانية (45 ثانية)
 
     try{
         let myid = id;
-        let numId = Number(myid);
+        //let numId = Number(myid);
         console.log(id);
         console.log(myid);
-        console.log(numId);
+        //console.log(numId);
                 
-        let this_client = myList[myindixes.indexOf(numId)];
+        let this_client = myList[myindixes.indexOf(myid)];
             // الحصول على رقم هاتف الحساب المتصل
         const myNumber = this_client.info.wid._serialized;
 
@@ -1386,15 +1476,15 @@ function generateQr(client_id){
         
     //let myid = client_id.substring(1);
     let myid = client_id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     return new Promise((resolve, reject) => {
         let this_client  ;
         console.log('No session in qr');
         //// this_client = myList[numId - 1];
-        this_client = myList[myindixes.indexOf(numId)];
+        this_client = myList[myindixes.indexOf(myid)];
        
         this_client.once('qr', async(qr) => {
         // Generate and scan this code with your phone
@@ -1412,6 +1502,11 @@ function generateQr(client_id){
 
     const generateQrCodeNew2 = async(req,res,next) =>{
         //console.log(client.info);
+        try{
+            const id2 = req.params.id || req.body.id;
+        }catch(error){
+            return res.status(400).json({ status:false ,message: "Missing required data: id" });
+        }        
         const id = req.params.id || req.body.id;
 
         res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
@@ -1436,8 +1531,16 @@ function generateQr(client_id){
     }
 
     const addNew_Device = async(req,res) =>{
+        try{
+            const id2= req.params.id || req.query.id || req.body.id;
+            //const company_name2 = req.params.name ||req.query.name || req.body.name;
+        }catch(error){
+            return res.status(400).json({status:false, message: "Missing required data: id or company_name" });
+        }
+        
         const id = req.params.id || req.query.id || req.body.id;
-        const company_name = req.params.name ||req.query.name || req.body.name;
+        //const company_name = req.params.name ||req.query.name || req.body.name;
+        const company_name = "-";
 
         res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
 
@@ -1481,13 +1584,13 @@ function generateQr(client_id){
 async function deleteMessageForEveryone(client_id,phone_id, messageId) {
         //let myid = client_id.substring(1);
         let myid = client_id;
-        let numId = Number(myid);
+        //let numId = Number(myid);
         console.log(client_id);
         console.log(myid);
-        console.log(numId);
+        //console.log(numId);
         let this_client  ;
         //// this_client = myList[numId - 1];
-        this_client = myList[myindixes.indexOf(numId)];
+        this_client = myList[myindixes.indexOf(myid)];
 
         return new Promise(async (resolve, reject) => {
            
@@ -1522,13 +1625,13 @@ async function deleteMessageForEveryone(client_id,phone_id, messageId) {
 async function deleteMessageForMe(client_id,phone_id, messageId) {
     //let myid = client_id.substring(1);
     let myid = client_id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     let this_client  ;
     //// this_client = myList[numId - 1];
-    this_client = myList[myindixes.indexOf(numId)];
+    this_client = myList[myindixes.indexOf(myid)];
     //console.log(this_client);
 
     return new Promise(async (resolve, reject) => {
@@ -1562,17 +1665,17 @@ async function checkReciver_isConnected(client_id,phone){
         
     //let myid = client_id.substring(1);
     let myid = client_id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     return new Promise(async (resolve, reject) => {
         let this_client  ;
     
         try {
         console.log('checkReciver_isConnected');
         //// this_client = myList[numId - 1];
-        this_client = myList[myindixes.indexOf(numId)];
+        this_client = myList[myindixes.indexOf(myid)];
        
         const user = await this_client.isRegisteredUser(phone);
         if(user){
@@ -1643,6 +1746,12 @@ async function checkReciver_isConnected(client_id,phone){
 
     const checkReciver = async(req,res) =>{
         //console.log(client.info);
+        try{
+            let id2 = req.query.id || req.body.id;
+            let phone2 = req.query.phone || req.body.phone;
+        }catch(error){
+            return res.status(400).json({ status:false ,message: "Missing required data: id or phone" });
+        }
         let id = req.query.id || req.body.id;
         let phone = req.query.phone || req.body.phone;
 
@@ -1675,15 +1784,15 @@ function make_logout(client_id){
         
     //let myid = client_id.substring(1);
     let myid = client_id;
-    let numId = Number(myid);
+    //let numId = Number(myid);
     console.log(client_id);
     console.log(myid);
-    console.log(numId);
+    //console.log(numId);
     return new Promise(async(resolve, reject) => {
         let this_client  ;
         console.log('No session in qr');
         //// this_client = myList[numId - 1];
-        this_client = myList[myindixes.indexOf(numId)];
+        this_client = myList[myindixes.indexOf(myid)];
        
         try {
             await this_client.logout();
@@ -1699,6 +1808,12 @@ function make_logout(client_id){
 
     const logout_whats = async(req,res,next) =>{
         //console.log(client.info);
+        try{
+            let id2 = req.params.id || req.body.id;
+        }catch(error){
+            return res.status(400).json({ status:false ,message: "Missing required data: id" });
+        }
+
         const id = req.params.id || req.body.id;
 
         res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
@@ -1722,7 +1837,75 @@ function make_logout(client_id){
         });      
     }
 
+    function check_initialized(client_id){
+        
+        //let myid = client_id.substring(1);
+        let myid = client_id;
+        //let numId = Number(myid);
+        console.log(client_id);
+        console.log(myid);
+        //console.log(numId);
+        return new Promise(async(resolve, reject) => {
+            let this_client  ;
+            console.log('No session in qr');
+            //this_client = myList[myindixes.indexOf(myid)];
+            const folderPath_auth = wwebjs_authDir + "/session-client_"+myid;
+            console.log(folderPath_auth); 
+            try {  
+                if (fs.existsSync(folderPath_auth) && fs.statSync(folderPath_auth).isDirectory()) {
+                    resolve("Done");
+                    console.log('Client is initialized and ready');
+                } else {
+                    resolve("NotDone");
+                    console.log('Client is not initialized');
+                }
+            } catch (error) {
+                console.log(error);
+                reject(error); 
+            }
+    });
+    };
+    
+        const checkisClientInitialized = async(req,res,next) =>{
+            //console.log(client.info);
+            try{
+                let id2 = req.params.id || req.body.id;
+            }catch(error){
+                return res.status(400).json({ status:false ,message: "Missing required data: id" });
+            }
+    
+            const id = req.params.id || req.body.id;
+    
+            res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+    
+            check_initialized(id)
+            .then((result)=>{
+                if(result =="Done"){
+                    console.log('Client is initialized and ready: ',id); 
+                    res.status(200).json({
+                        status: true,
+                        message: 'Client is initialized and ready',
+                });
+                }
+                else if(result =="NotDone"){
+                    console.log('Client is not initialized : ',id); 
+                    res.status(200).json({
+                        status: false,
+                        message: 'Client is not initialized',
+                });
+                }
 
-module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,test,isClientReady_data,generateQrCodeNew2,addNew_Device,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage};
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('Error : error in server on check_isClient_initialized: ',id); 
+                res.status(200).json({
+                    status: false,
+                    message: 'Error : error in server on check_isClient_initialized',
+                    error: error.message
+                });
+            });      
+        }
 
+module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,sendMessage_text_s,test,isClientReady_data,generateQrCodeNew2,addNew_Device,checkisClientInitialized,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage};
 
