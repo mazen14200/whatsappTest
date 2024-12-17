@@ -155,6 +155,45 @@ const connectionString ='Server=localhost,14333;Database=whats_db;User Id=bnanwh
         });
       }
 
+      async function get_last_connect_CheckConnectedOrNot(connect_id) {
+        return new Promise(async function(resolve, reject){
+        try{
+            poolconnection = await mssql.connect(connectionString);
+            const request = await poolconnection.request();
+            let connect_status ='D';
+            console.log("my id is :",connect_id);
+            //let query1 = "SELECT MAX(connect_LogOut_Datetime) AS Max_Logout ,connect_id,connect_serial FROM connect where connect_id ='"+connect_id+"' AND connect_status ='D' GROUP BY connect_id,connect_serial";
+            let query1 = "SELECT MAX(CAST(connect_serial AS INT)) AS Max_connect_serial ,connect_id FROM connect where connect_id ='"+connect_id+"' AND connect_serial IS NOT NUll GROUP BY connect_id";
+            const results = await request.query(query1);
+            if(results.recordset[0] === undefined){
+                console.log("get_last_connect_serial : NULL");
+                resolve("-1");
+            }
+            else if(results.recordset[0].Max_connect_serial=="0"|| results.recordset[0].Max_connect_serial==0){
+                console.log("get_last_connect_serial : 0");
+                resolve("0");
+            }
+            else{
+                console.log("get_last_connect_serial : ",results.recordset[0]);
+                let mySerial = results.recordset[0].Max_connect_serial;
+                let numSerial = Number(mySerial);
+                let query2 = "SELECT connect_status FROM connect where connect_id ='"+connect_id+"' AND connect_serial = '"+numSerial+"'";
+                const results2 = await request.query(query2);
+                if(results2.recordset[0].connect_status=="N"){
+                    numSerial = numSerial -1;
+                }
+                let query3 = "SELECT * FROM connect where connect_id ='"+connect_id+"' AND connect_serial = '"+numSerial+"'";
+                const results3 = await request.query(query3);
+                //console.log(numSerial);
+                resolve(results3.recordset[0]);
+            }
+        }catch(err){
+            console.log('Error in DB connection: ',err);
+            reject(err);
+        }
+        });
+      }
+
       async function insert_connect_New(connect_id ,connect_status,serial) {
         get_connect_spacific_A_N(connect_id).then(res=>{
             if(res == "NULL"){
@@ -1907,5 +1946,43 @@ function make_logout(client_id){
             });      
         }
 
-module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,sendMessage_text_s,test,isClientReady_data,generateQrCodeNew2,addNew_Device,checkisClientInitialized,testUpload,checkReciver,deleteMessage,logout_whats,getThisImage};
+        const Check_is_Connected_OrNot = async(req,res) =>{
+            //console.log(client.info);
+            try{
+                let id2 = req.query.id || req.params.id || req.body.id;
+            }catch(error){
+                return res.status(400).json({ status:false ,message: "Missing required data: id" }); 
+            }
+            let id = req.query.id || req.params.id || req.body.id;
+        
+            res.setTimeout(40000); // 40000 مللي ثانية (40 ثانية)
+    
+            get_last_connect_CheckConnectedOrNot(id)
+            .then((result)=>{
+                if(result == "-1"|| result == undefined){
+                    res.status(200).json({status:false,key:"1", response: {message : "this Company Not Found or Error Has Ocured"  }})
+                }
+                else if(result == "0"){
+                    res.status(200).json({status:false,key:"2", response: {message : "this Company isn't Connected Before"  }})
+
+                }
+                else if(result.connect_status == "A"){
+                    res.status(200).json({status:true,key:"3", response: {message : "this Company is Connected" ,last_login:result.connect_Login_Datetime,
+                        name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis
+                     }})
+                }
+                else{
+                    res.status(200).json({status:true,key:"4", response: {message : "this Company is DisConnected" ,last_login:result.connect_Login_Datetime,
+                        last_logOut:result.connect_LogOut_Datetime ,name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis
+                      }})
+                }
+            })
+            .catch((error) => {
+                //console.error('Error:', error);
+                console.log('Check_is_Connected_OrNot : Server Error'); 
+                res.status(200).json({status:false,key:"0", response: {message : "Check_is_Connected_OrNot : Server Error" ,error: error.message  }})
+            });      
+        };
+
+module.exports = {sendMedia_by_url,sendMedia_by_file,sendMessage_text,sendMessage_text_s,test,isClientReady_data,generateQrCodeNew2,addNew_Device,checkisClientInitialized,testUpload,checkReciver,deleteMessage,logout_whats,Check_is_Connected_OrNot,getThisImage};
 
