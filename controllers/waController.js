@@ -1968,12 +1968,12 @@ function make_logout(client_id){
                 }
                 else if(result.connect_status == "A"){
                     res.status(200).json({status:true,key:"3", response: {message : "this Company is Connected" ,last_login:result.connect_Login_Datetime,
-                        name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis
+                        name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis ,Connection_count:result.connect_serial
                      }})
                 }
                 else{
                     res.status(200).json({status:true,key:"4", response: {message : "this Company is DisConnected" ,last_login:result.connect_Login_Datetime,
-                        last_logOut:result.connect_LogOut_Datetime ,name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis
+                        last_logOut:result.connect_LogOut_Datetime ,name:result.connect_name,phone:result.connect_mobile,deviceType:result.connect_deviceType,isBussenis:result.connect_isBussenis ,Connection_count:result.connect_serial
                       }})
                 }
             })
